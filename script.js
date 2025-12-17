@@ -11,7 +11,7 @@ let startTime;
 let totalTyped = 0;
 let correctTyped = 0;
 let gameInterval;
-let wordInput;
+let spawnInterval;
 
 // DOM elements
 const startScreen = document.getElementById('start-screen');
@@ -33,8 +33,12 @@ const bulletContainer = document.getElementById('bullet-container');
 
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
-    startButton.addEventListener('click', startGame);
-    restartButton.addEventListener('click', startGame);
+    const startBtn = document.getElementById('start-button');
+    const restartBtn = document.getElementById('restart-button');
+    const wordInput = document.getElementById('word-input');
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
     wordInput.addEventListener('keydown', handleInput);
 });
 
@@ -52,30 +56,36 @@ function startGame() {
     totalTyped = 0;
     correctTyped = 0;
     startTime = new Date();
-    
+
     // Update UI
     updateUI();
-    
+
     // Switch screens
     startScreen.classList.remove('active');
     gameScreen.classList.add('active');
     gameOverScreen.classList.remove('active');
-    
+
     // Clear previous game elements
     asteroidField.innerHTML = '';
     bulletContainer.innerHTML = '';
-    
+
     // Focus on input field
-    wordInput.value = '';
-    wordInput.focus();
-    
+    const input = document.getElementById('word-input');
+    input.value = '';
+    input.focus();
+
     // Start game loop
     clearInterval(gameInterval);
     gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
-    
+
+    // Clear any existing spawn intervals
+    if (spawnInterval) {
+        clearInterval(spawnInterval);
+    }
+
     // Start spawning asteroids
     spawnAsteroid();
-    setInterval(spawnAsteroid, 2000 - (level * 100)); // Adjust spawn rate based on level
+    spawnInterval = setInterval(spawnAsteroid, 2000 - (level * 100)); // Adjust spawn rate based on level
 }
 
 // Handle user input
@@ -220,13 +230,16 @@ function updateUI() {
 function endGame() {
     gameState = 'gameOver';
     clearInterval(gameInterval);
-    
+    if (spawnInterval) {
+        clearInterval(spawnInterval);
+    }
+
     // Update game over screen
     finalScore.textContent = score;
     finalLevel.textContent = level;
     peakWpm.textContent = wpm;
     finalAccuracy.textContent = `${accuracy}%`;
-    
+
     // Switch screens
     gameScreen.classList.remove('active');
     gameOverScreen.classList.add('active');
