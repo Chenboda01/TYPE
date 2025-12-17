@@ -145,29 +145,13 @@ function handleInput(e) {
 function spawnAsteroid() {
     if (gameState !== 'playing') return;
 
-    // Choose between different space objects
-    const imageBank = [
-        { name: 'comet', src: 'assets/comet.svg' },
-        { name: 'planet', src: 'assets/planet.svg' },
-        { name: 'star', src: 'assets/star.svg' },
-        { name: 'meteor', src: 'assets/meteor.svg' }
-    ];
-    const randomObject = imageBank[Math.floor(Math.random() * imageBank.length)];
+    // Simple word bank for now
+    const wordBank = ['comet', 'nebula', 'galaxy', 'planet', 'meteor', 'star', 'orbit', 'space', 'cosmos'];
+    const randomWord = wordBank[Math.floor(Math.random() * wordBank.length)];
 
     const asteroid = document.createElement('div');
     asteroid.className = 'asteroid';
-
-    // Create an img element for the asteroid
-    const img = document.createElement('img');
-    img.src = randomObject.src;
-    img.alt = randomObject.name;
-    img.style.width = '40px';
-    img.style.height = '40px';
-
-    asteroid.appendChild(img);
-
-    // Store the name separately for matching purposes
-    asteroid.setAttribute('data-word', randomObject.name);
+    asteroid.textContent = randomWord;
 
     // Position randomly along the top of the screen
     const startPos = Math.random() * window.innerWidth;
@@ -177,7 +161,7 @@ function spawnAsteroid() {
     // Store asteroid data
     const asteroidData = {
         element: asteroid,
-        word: randomObject.name,
+        word: randomWord,
         x: startPos,
         y: 0,
         speed: 1 + (level * 0.2) // Increase speed with level
