@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100">
+  <!-- Comet head -->
+  <circle cx="70" cy="50" r="15" fill="#A9A9A9"/>
+  <!-- Comet tail -->
+  <path d="M70 50 Q50 30, 30 20 Q40 45, 30 70 Q50 60, 70 50" fill="#D3D3D3" opacity="0.7"/>
+  <!-- Comet trail -->
+  <path d="M70 50 Q90 20, 100 10 M70 50 Q80 40, 100 30 M70 50 Q90 60, 100 70 M70 50 Q85 80, 100 90" 
+        stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.6"/>
+</svg>

@@ -103,11 +103,11 @@ function startGame() {
 // Handle user input
 function handleInput(e) {
     if (gameState !== 'playing') return;
-    
+
     if (e.key === 'Enter') {
         const typedWord = wordInput.value.trim().toLowerCase();
         totalTyped += typedWord.length;
-        
+
         // Check if the typed word matches any asteroid
         let hit = false;
         for (let i = asteroids.length - 1; i >= 0; i--) {
@@ -120,20 +120,20 @@ function handleInput(e) {
                 break;
             }
         }
-        
+
         // Update accuracy
         accuracy = Math.round((correctTyped / totalTyped) * 100) || 100;
-        
+
         // Calculate WPM (words per minute)
         const timeElapsed = (new Date() - startTime) / 60000; // in minutes
         wpm = Math.round((correctTyped / 5) / timeElapsed) || 0;
-        
+
         // Update UI
         updateUI();
-        
+
         // Clear input
         wordInput.value = '';
-        
+
         // If no hit, add penalty or continue
         if (!hit) {
             // Maybe add a miss penalty or feedback here
@@ -144,29 +144,45 @@ function handleInput(e) {
 // Spawn a new asteroid
 function spawnAsteroid() {
     if (gameState !== 'playing') return;
-    
-    // Simple word bank for now
-    const wordBank = ['comet', 'nebula', 'galaxy', 'planet', 'meteor', 'star', 'orbit', 'space', 'cosmos'];
-    const randomWord = wordBank[Math.floor(Math.random() * wordBank.length)];
-    
+
+    // Choose between different space objects
+    const imageBank = [
+        { name: 'comet', src: 'assets/comet.svg' },
+        { name: 'planet', src: 'assets/planet.svg' },
+        { name: 'star', src: 'assets/star.svg' },
+        { name: 'meteor', src: 'assets/meteor.svg' }
+    ];
+    const randomObject = imageBank[Math.floor(Math.random() * imageBank.length)];
+
     const asteroid = document.createElement('div');
     asteroid.className = 'asteroid';
-    asteroid.textContent = randomWord;
-    
+
+    // Create an img element for the asteroid
+    const img = document.createElement('img');
+    img.src = randomObject.src;
+    img.alt = randomObject.name;
+    img.style.width = '40px';
+    img.style.height = '40px';
+
+    asteroid.appendChild(img);
+
+    // Store the name separately for matching purposes
+    asteroid.setAttribute('data-word', randomObject.name);
+
     // Position randomly along the top of the screen
     const startPos = Math.random() * window.innerWidth;
     asteroid.style.left = `${startPos}px`;
     asteroid.style.top = '0px';
-    
+
     // Store asteroid data
     const asteroidData = {
         element: asteroid,
-        word: randomWord,
+        word: randomObject.name,
         x: startPos,
         y: 0,
         speed: 1 + (level * 0.2) // Increase speed with level
     };
-    
+
     asteroidField.appendChild(asteroid);
     asteroids.push(asteroidData);
 }

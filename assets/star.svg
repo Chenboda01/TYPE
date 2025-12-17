@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100">
+  <!-- Star body -->
+  <polygon points="50,10 61,39 92,39 68,57 79,86 50,70 21,86 32,57 8,39 39,39" fill="#FFD700"/>
+  <!-- Glow effect -->
+  <circle cx="50" cy="50" r="45" fill="none" stroke="#FFFF99" stroke-width="1" opacity="0.5"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100">
+  <!-- Meteor shape -->
+  <ellipse cx="50" cy="50" rx="20" ry="15" fill="#8B4513"/>
+  <!-- Bright front -->
+  <ellipse cx="45" cy="48" rx="12" ry="10" fill="#CD853F"/>
+  <!-- Tail/trail -->
+  <path d="M65 50 Q80 45, 90 40 Q85 50, 90 60 Q80 55, 65 50" fill="#FFA500" opacity="0.7"/>
+</svg>

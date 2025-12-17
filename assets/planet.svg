@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 100 100">
+  <!-- Planet body -->
+  <circle cx="50" cy="50" r="30" fill="#4F8BF9"/>
+  <!-- Planet atmosphere/glow -->
+  <circle cx="50" cy="50" r="35" fill="none" stroke="#7CABFF" stroke-width="2" opacity="0.5"/>
+  <!-- Planet details -->
+  <circle cx="40" cy="40" r="5" fill="#3a6aa6"/>
+  <ellipse cx="60" cy="55" rx="6" ry="3" fill="#3a6aa6"/>
+</svg>

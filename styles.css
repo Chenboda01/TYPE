@@ -151,10 +151,9 @@ body {
 
 .asteroid {
     position: absolute;
-    color: #ff9900;
-    font-weight: bold;
-    font-size: 1.2rem;
-    text-shadow: 0 0 5px #ff9900;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 5px;
     white-space: nowrap;
 }

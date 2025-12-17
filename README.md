@@ -7,12 +7,12 @@ This game is about typing as fast as you can! The faster you type, the higher yo
 The basic game structure is now implemented with:
 
 - Main menu with difficulty selection
-- Gameplay screen with spaceship, asteroids, and typing input
-- Scoring system based on word length
+- Gameplay screen with spaceship, space objects (comets, planets, stars, meteors), and typing input
+- Scoring system based on space object names length
 - WPM (Words Per Minute) calculation
 - Accuracy tracking
 - Level progression as score increases
-- Asteroid movement and collision detection
+- Space object movement and collision detection
 - Game over screen with stats
 
 ## Technologies Used
