@@ -40,6 +40,17 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.addEventListener('click', startGame);
     restartBtn.addEventListener('click', startGame);
     wordInput.addEventListener('keydown', handleInput);
+
+    // Allow Enter key to trigger start/restart depending on current game state
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            if (gameState === 'start') {
+                startGame();
+            } else if (gameState === 'gameOver') {
+                startGame();
+            }
+        }
+    });
 });
 
 // Start the game
