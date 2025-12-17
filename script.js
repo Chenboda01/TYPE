@@ -207,26 +207,27 @@ function destroyAsteroid(index) {
 // Update game state
 function updateGame() {
     if (gameState !== 'playing') return;
-    
+
     // Move asteroids down
     for (let i = asteroids.length - 1; i >= 0; i--) {
         const asteroid = asteroids[i];
         asteroid.y += asteroid.speed;
         asteroid.element.style.top = `${asteroid.y}px`;
-        
-        // Check if asteroid reached bottom (game over condition)
-        if (asteroid.y > window.innerHeight * 0.8) {
+
+        // Check if asteroid reached the spaceship (game over condition)
+        // The spaceship is at the bottom of the screen
+        if (asteroid.y > window.innerHeight * 0.9) {
             endGame();
             return;
         }
     }
-    
+
     // Move bullets up
     for (let i = bullets.length - 1; i >= 0; i--) {
         const bullet = bullets[i];
         bullet.y -= bullet.speed;
         bullet.element.style.top = `${bullet.y}px`;
-        
+
         // Remove bullets that go off-screen
         if (bullet.y < 0) {
             if (bullet.element.parentNode) {
@@ -235,14 +236,14 @@ function updateGame() {
             bullets.splice(i, 1);
         }
     }
-    
+
     // Level up based on score
     const newLevel = Math.floor(score / 500) + 1;
     if (newLevel > level) {
         level = newLevel;
         // Increase difficulty here
     }
-    
+
     updateUI();
 }
 
