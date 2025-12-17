@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TYPE - Space Typing Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1>TYPE</h1>
+            <p>Space Typing Challenge</p>
+            <div id="instructions">
+                <p>Type words to shoot down asteroids before they reach your spaceship!</p>
+                <p>Longer words = more powerful bullets</p>
+                <p>Survive as long as you can and achieve the highest WPM!</p>
+            </div>
+            <button id="start-button">START MISSION</button>
+            <div id="difficulty-selection">
+                <label for="difficulty">Difficulty:</label>
+                <select id="difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="ui-panel">
+                <div id="score">Score: <span id="score-value">0</span></div>
+                <div id="level">Level: <span id="level-value">1</span></div>
+                <div id="wpm">WPM: <span id="wpm-value">0</span></div>
+                <div id="accuracy">Accuracy: <span id="accuracy-value">0%</span></div>
+            </div>
+
+            <div id="game-area">
+                <!-- Spaceship element -->
+                <div id="spaceship">🚀</div>
+                
+                <!-- Asteroids will be dynamically added here -->
+                <div id="asteroid-field"></div>
+                
+                <!-- Typed bullets will appear here -->
+                <div id="bullet-container"></div>
+                
+                <!-- Powerups will appear here -->
+                <div id="powerup-container"></div>
+            </div>
+
+            <!-- Word Input Area -->
+            <div id="typing-area">
+                <input type="text" id="word-input" placeholder="Type the word and press Enter..." autocomplete="off" autofocus>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen">
+            <h2>MISSION FAILED</h2>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <p>Level Reached: <span id="final-level">1</span></p>
+            <p>Peak WPM: <span id="peak-wpm">0</span></p>
+            <p>Accuracy: <span id="final-accuracy">0%</span></p>
+            <button id="restart-button">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

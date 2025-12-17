@@ -1,0 +1,277 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #000;
+    color: #00ff00;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Game container */
+#game-container {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    height: 90vh;
+    margin: 0 auto;
+    border: 1px solid #00ff00;
+    background-color: rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+}
+
+/* Screen styling - common to start, game, and game over screens */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 20px;
+    text-align: center;
+}
+
+.screen.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Start screen styling */
+#start-screen h1 {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    color: #00ff00;
+    text-shadow: 0 0 10px #00ff00;
+}
+
+#start-screen p {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+}
+
+#instructions {
+    max-width: 600px;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+#instructions p {
+    margin-bottom: 10px;
+}
+
+#start-button, #restart-button {
+    background-color: #003300;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    margin: 10px;
+    border-radius: 5px;
+    transition: all 0.2s;
+}
+
+#start-button:hover, #restart-button:hover {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 15px #00ff00;
+}
+
+#difficulty-selection {
+    margin-top: 20px;
+}
+
+#difficulty-selection label {
+    margin-right: 10px;
+}
+
+#difficulty {
+    background-color: #000;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 5px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* UI Panel styling */
+#ui-panel {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: rgba(0, 30, 0, 0.7);
+    border-bottom: 1px solid #00ff00;
+}
+
+#ui-panel div {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Game area styling */
+#game-area {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 100px); /* Account for UI panel and typing area */
+    overflow: hidden;
+}
+
+#spaceship {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 3rem;
+    z-index: 10;
+}
+
+/* Asteroid field */
+#asteroid-field {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.asteroid {
+    position: absolute;
+    color: #ff9900;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-shadow: 0 0 5px #ff9900;
+    padding: 5px;
+    white-space: nowrap;
+}
+
+/* Bullet container */
+#bullet-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+.bullet {
+    position: absolute;
+    color: #00ffff;
+    font-size: 1.5rem;
+    text-shadow: 0 0 5px #00ffff;
+    z-index: 5;
+}
+
+/* Powerup container */
+#powerup-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.powerup {
+    position: absolute;
+    font-size: 2rem;
+    animation: float 3s infinite ease-in-out;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Typing area */
+#typing-area {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 20;
+}
+
+#word-input {
+    width: 80%;
+    max-width: 500px;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+    background-color: rgba(0, 20, 0, 0.8);
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    outline: none;
+}
+
+#word-input:focus {
+    box-shadow: 0 0 15px #00ff00;
+}
+
+/* Game over screen */
+#game-over-screen h2 {
+    font-size: 3rem;
+    color: #ff0000;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #ff0000;
+}
+
+#game-over-screen p {
+    font-size: 1.5rem;
+    margin: 10px 0;
+}
+
+/* Animation for destruction effect */
+@keyframes explode {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+.explode {
+    animation: explode 0.5s forwards;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #game-container {
+        height: 95vh;
+    }
+    
+    #start-screen h1 {
+        font-size: 2.5rem;
+    }
+    
+    #start-screen p {
+        font-size: 1.2rem;
+    }
+    
+    #ui-panel div {
+        font-size: 1rem;
+    }
+    
+    .asteroid {
+        font-size: 1rem;
+    }
+    
+    #word-input {
+        padding: 10px;
+        font-size: 1rem;
+    }
+}

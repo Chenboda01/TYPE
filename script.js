@@ -1,0 +1,233 @@
+// Game variables
+let gameState = 'start'; // 'start', 'playing', 'gameOver'
+let score = 0;
+let level = 1;
+let wpm = 0;
+let accuracy = 100;
+let asteroids = [];
+let bullets = [];
+let powerups = [];
+let startTime;
+let totalTyped = 0;
+let correctTyped = 0;
+let gameInterval;
+let wordInput;
+
+// DOM elements
+const startScreen = document.getElementById('start-screen');
+const gameScreen = document.getElementById('game-screen');
+const gameOverScreen = document.getElementById('game-over-screen');
+const startButton = document.getElementById('start-button');
+const restartButton = document.getElementById('restart-button');
+const scoreValue = document.getElementById('score-value');
+const levelValue = document.getElementById('level-value');
+const wpmValue = document.getElementById('wpm-value');
+const accuracyValue = document.getElementById('accuracy-value');
+const finalScore = document.getElementById('final-score');
+const finalLevel = document.getElementById('final-level');
+const peakWpm = document.getElementById('peak-wpm');
+const finalAccuracy = document.getElementById('final-accuracy');
+const wordInput = document.getElementById('word-input');
+const asteroidField = document.getElementById('asteroid-field');
+const bulletContainer = document.getElementById('bullet-container');
+
+// Initialize game
+document.addEventListener('DOMContentLoaded', () => {
+    startButton.addEventListener('click', startGame);
+    restartButton.addEventListener('click', startGame);
+    wordInput.addEventListener('keydown', handleInput);
+});
+
+// Start the game
+function startGame() {
+    // Reset game state
+    gameState = 'playing';
+    score = 0;
+    level = 1;
+    wpm = 0;
+    accuracy = 100;
+    asteroids = [];
+    bullets = [];
+    powerups = [];
+    totalTyped = 0;
+    correctTyped = 0;
+    startTime = new Date();
+    
+    // Update UI
+    updateUI();
+    
+    // Switch screens
+    startScreen.classList.remove('active');
+    gameScreen.classList.add('active');
+    gameOverScreen.classList.remove('active');
+    
+    // Clear previous game elements
+    asteroidField.innerHTML = '';
+    bulletContainer.innerHTML = '';
+    
+    // Focus on input field
+    wordInput.value = '';
+    wordInput.focus();
+    
+    // Start game loop
+    clearInterval(gameInterval);
+    gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+    
+    // Start spawning asteroids
+    spawnAsteroid();
+    setInterval(spawnAsteroid, 2000 - (level * 100)); // Adjust spawn rate based on level
+}
+
+// Handle user input
+function handleInput(e) {
+    if (gameState !== 'playing') return;
+    
+    if (e.key === 'Enter') {
+        const typedWord = wordInput.value.trim().toLowerCase();
+        totalTyped += typedWord.length;
+        
+        // Check if the typed word matches any asteroid
+        let hit = false;
+        for (let i = asteroids.length - 1; i >= 0; i--) {
+            const asteroid = asteroids[i];
+            if (asteroid.word.toLowerCase() === typedWord) {
+                // Correctly typed word - destroy asteroid
+                destroyAsteroid(i);
+                correctTyped += typedWord.length;
+                hit = true;
+                break;
+            }
+        }
+        
+        // Update accuracy
+        accuracy = Math.round((correctTyped / totalTyped) * 100) || 100;
+        
+        // Calculate WPM (words per minute)
+        const timeElapsed = (new Date() - startTime) / 60000; // in minutes
+        wpm = Math.round((correctTyped / 5) / timeElapsed) || 0;
+        
+        // Update UI
+        updateUI();
+        
+        // Clear input
+        wordInput.value = '';
+        
+        // If no hit, add penalty or continue
+        if (!hit) {
+            // Maybe add a miss penalty or feedback here
+        }
+    }
+}
+
+// Spawn a new asteroid
+function spawnAsteroid() {
+    if (gameState !== 'playing') return;
+    
+    // Simple word bank for now
+    const wordBank = ['comet', 'nebula', 'galaxy', 'planet', 'meteor', 'star', 'orbit', 'space', 'cosmos'];
+    const randomWord = wordBank[Math.floor(Math.random() * wordBank.length)];
+    
+    const asteroid = document.createElement('div');
+    asteroid.className = 'asteroid';
+    asteroid.textContent = randomWord;
+    
+    // Position randomly along the top of the screen
+    const startPos = Math.random() * window.innerWidth;
+    asteroid.style.left = `${startPos}px`;
+    asteroid.style.top = '0px';
+    
+    // Store asteroid data
+    const asteroidData = {
+        element: asteroid,
+        word: randomWord,
+        x: startPos,
+        y: 0,
+        speed: 1 + (level * 0.2) // Increase speed with level
+    };
+    
+    asteroidField.appendChild(asteroid);
+    asteroids.push(asteroidData);
+}
+
+// Destroy an asteroid
+function destroyAsteroid(index) {
+    const asteroid = asteroids[index];
+    asteroid.element.classList.add('explode');
+    
+    // Add to score based on word length
+    score += asteroid.word.length * 10;
+    
+    // Remove asteroid after animation
+    setTimeout(() => {
+        if (asteroid.element.parentNode) {
+            asteroid.element.parentNode.removeChild(asteroid.element);
+        }
+        asteroids.splice(index, 1);
+    }, 500);
+}
+
+// Update game state
+function updateGame() {
+    if (gameState !== 'playing') return;
+    
+    // Move asteroids down
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+        const asteroid = asteroids[i];
+        asteroid.y += asteroid.speed;
+        asteroid.element.style.top = `${asteroid.y}px`;
+        
+        // Check if asteroid reached bottom (game over condition)
+        if (asteroid.y > window.innerHeight * 0.8) {
+            endGame();
+            return;
+        }
+    }
+    
+    // Move bullets up
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
+        bullet.y -= bullet.speed;
+        bullet.element.style.top = `${bullet.y}px`;
+        
+        // Remove bullets that go off-screen
+        if (bullet.y < 0) {
+            if (bullet.element.parentNode) {
+                bullet.element.parentNode.removeChild(bullet.element);
+            }
+            bullets.splice(i, 1);
+        }
+    }
+    
+    // Level up based on score
+    const newLevel = Math.floor(score / 500) + 1;
+    if (newLevel > level) {
+        level = newLevel;
+        // Increase difficulty here
+    }
+    
+    updateUI();
+}
+
+// Update UI elements
+function updateUI() {
+    scoreValue.textContent = score;
+    levelValue.textContent = level;
+    wpmValue.textContent = wpm;
+    accuracyValue.textContent = `${accuracy}%`;
+}
+
+// End the game
+function endGame() {
+    gameState = 'gameOver';
+    clearInterval(gameInterval);
+    
+    // Update game over screen
+    finalScore.textContent = score;
+    finalLevel.textContent = level;
+    peakWpm.textContent = wpm;
+    finalAccuracy.textContent = `${accuracy}%`;
+    
+    // Switch screens
+    gameScreen.classList.remove('active');
+    gameOverScreen.classList.add('active');
+}
