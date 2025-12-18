@@ -8,10 +8,35 @@
 </head>
 <body>
     <div id="game-container">
-        <!-- Start Screen -->
-        <div id="start-screen" class="screen active">
+        <!-- User Authentication Screen -->
+        <div id="auth-screen" class="screen active">
             <h1>TYPE</h1>
             <p>Space Typing Challenge</p>
+
+            <div id="auth-container">
+                <div id="login-form" class="auth-form">
+                    <h2>Login</h2>
+                    <input type="text" id="login-username" placeholder="Username" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    <button id="login-button">Login</button>
+                    <p>Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
+                </div>
+
+                <div id="signup-form" class="auth-form hidden">
+                    <h2>Sign Up</h2>
+                    <input type="text" id="signup-username" placeholder="Choose Username" required>
+                    <input type="password" id="signup-password" placeholder="Choose Password" required>
+                    <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+                    <button id="signup-button">Sign Up</button>
+                    <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <h1>TYPE</h1>
+            <p>Welcome, <span id="current-username">Player</span>!</p>
             <div id="instructions">
                 <p>Type words to shoot down asteroids before they reach your spaceship!</p>
                 <p>Longer words = more powerful bullets</p>
@@ -25,6 +50,10 @@
                     <option value="medium" selected>Medium</option>
                     <option value="hard">Hard</option>
                 </select>
+            </div>
+            <div id="user-stats">
+                <p>Best Score: <span id="best-score">0</span></p>
+                <p>Best WPM: <span id="best-wpm">0</span></p>
             </div>
         </div>
 
@@ -71,17 +100,63 @@
             <!-- Word Input Area -->
             <div id="typing-area">
                 <input type="text" id="word-input" placeholder="Type the word and press Enter..." autocomplete="off" autofocus>
+                <div id="bullet-display">
+                    <!-- Bullets will appear here as they are fired -->
+                </div>
             </div>
         </div>
 
         <!-- Game Over Screen -->
         <div id="game-over-screen" class="screen">
             <h2>MISSION FAILED</h2>
-            <p>Final Score: <span id="final-score">0</span></p>
-            <p>Level Reached: <span id="final-level">1</span></p>
-            <p>Peak WPM: <span id="peak-wpm">0</span></p>
-            <p>Accuracy: <span id="final-accuracy">0%</span></p>
+            <div class="game-stats">
+                <p>Final Score: <span id="final-score">0</span></p>
+                <p>Level Reached: <span id="final-level">1</span></p>
+                <p>Peak WPM: <span id="peak-wpm">0</span></p>
+                <p>Accuracy: <span id="final-accuracy">0%</span></p>
+            </div>
+
+            <div id="user-stats-comparison" class="user-stats-comparison">
+                <h3>Your Best Records</h3>
+                <p>Best Score: <span id="best-score-final">0</span></p>
+                <p>Best WPM: <span id="best-wpm-final">0</span></p>
+            </div>
+
             <button id="restart-button">TRY AGAIN</button>
+
+            <div id="user-dashboard-link">
+                <button id="view-profile">View Profile</button>
+            </div>
+        </div>
+
+        <!-- User Profile Dashboard -->
+        <div id="profile-screen" class="screen">
+            <h2>User Profile</h2>
+            <div id="profile-content">
+                <h3>Welcome, <span id="profile-username">Player</span>!</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Best Score</h4>
+                        <p id="profile-best-score">0</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>Best WPM</h4>
+                        <p id="profile-best-wpm">0</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>Games Played</h4>
+                        <p id="profile-games-played">0</p>
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <button id="back-to-game">Back to Game</button>
+                    <button id="logout-button">Logout</button>
+                </div>
+            </div>
         </div>
     </div>
 

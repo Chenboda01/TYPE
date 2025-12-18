@@ -44,6 +44,9 @@ const musicTracks = [
 let isMusicPlaying = false;
 let isGamePaused = false;
 
+// User authentication and data
+let currentUser = null;
+
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-button');
@@ -69,6 +72,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // Game pause/resume controls
     pauseButton.addEventListener('click', togglePause);
 
+    // Initialize authentication elements
+    const authScreen = document.getElementById('auth-screen');
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const loginButton = document.getElementById('login-button');
+    const signupButton = document.getElementById('signup-button');
+    const showSignupLink = document.getElementById('show-signup');
+    const showLoginLink = document.getElementById('show-login');
+    const loginUsername = document.getElementById('login-username');
+    const loginPassword = document.getElementById('login-password');
+    const signupUsername = document.getElementById('signup-username');
+    const signupPassword = document.getElementById('signup-password');
+    const confirmPassword = document.getElementById('confirm-password');
+
+    // Profile screen elements
+    const profileScreen = document.getElementById('profile-screen');
+    const viewProfileButton = document.getElementById('view-profile');
+    const backToGameButton = document.getElementById('back-to-game');
+    const logoutButton = document.getElementById('logout-button');
+
+    // Authentication controls
+    loginButton.addEventListener('click', handleLogin);
+    signupButton.addEventListener('click', handleSignup);
+    showSignupLink.addEventListener('click', showSignupForm);
+    showLoginLink.addEventListener('click', showLoginForm);
+
+    // Profile controls
+    viewProfileButton.addEventListener('click', showProfileScreen);
+    backToGameButton.addEventListener('click', () => {
+        profileScreen.classList.remove('active');
+        startScreen.classList.add('active');
+        gameState = 'start';
+    });
+    logoutButton.addEventListener('click', handleLogout);
+
     // Global keydown listener to handle Enter key for start/restart
     document.addEventListener('keydown', function(event) {
         // Only allow Enter to start/restart when on the start or game over screen
@@ -90,10 +128,137 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize music
     initMusic();
+
+    // Check if user is already logged in
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showStartScreen();
+    }
 });
+
+// Show signup form
+function showSignupForm(e) {
+    e.preventDefault();
+    document.getElementById('login-form').classList.add('hidden');
+    document.getElementById('signup-form').classList.remove('hidden');
+}
+
+// Show login form
+function showLoginForm(e) {
+    e.preventDefault();
+    document.getElementById('signup-form').classList.add('hidden');
+    document.getElementById('login-form').classList.remove('hidden');
+}
+
+// Handle user signup
+function handleSignup() {
+    const username = document.getElementById('signup-username').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const confirmPasswordVal = document.getElementById('confirm-password').value;
+
+    if (!username || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    if (password !== confirmPasswordVal) {
+        alert('Passwords do not match');
+        return;
+    }
+
+    // Check if user already exists
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (users[username]) {
+        alert('Username already exists. Please choose another one.');
+        return;
+    }
+
+    // Create new user
+    users[username] = {
+        password: password,
+        bestScore: 0,
+        bestWpm: 0,
+        registrationDate: new Date().toISOString()
+    };
+
+    localStorage.setItem('users', JSON.stringify(users));
+
+    // Login the new user
+    currentUser = {
+        username: username,
+        bestScore: 0,
+        bestWpm: 0
+    };
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+    // Switch to start screen
+    showStartScreen();
+}
+
+// Handle user login
+function handleLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    if (!username || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    // Check if user exists
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const user = users[username];
+
+    if (!user || user.password !== password) {
+        alert('Invalid username or password');
+        return;
+    }
+
+    // Login successful
+    currentUser = {
+        username: username,
+        bestScore: user.bestScore || 0,
+        bestWpm: user.bestWpm || 0
+    };
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+    // Update UI with user stats
+    updateStartScreenUserInfo();
+
+    // Switch to start screen
+    showStartScreen();
+}
+
+// Show start screen after authentication
+function showStartScreen() {
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('start-screen').classList.add('active');
+    gameState = 'start';
+
+    // Update user info in start screen
+    updateStartScreenUserInfo();
+}
+
+// Update user info in the start screen
+function updateStartScreenUserInfo() {
+    if (currentUser) {
+        document.getElementById('current-username').textContent = currentUser.username;
+        document.getElementById('best-score').textContent = currentUser.bestScore || 0;
+        document.getElementById('best-wpm').textContent = currentUser.bestWpm || 0;
+    }
+}
 
 // Start the game
 function startGame() {
+    // If user is not logged in, show auth screen instead
+    if (!currentUser) {
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('auth-screen').classList.add('active');
+        gameState = 'start';
+        return;
+    }
+
     // Reset game state
     gameState = 'playing';
     isGamePaused = false; // Reset pause state
@@ -164,40 +329,111 @@ function handleInput(e) {
     if (gameState !== 'playing' || isGamePaused) return; // Don't handle input when paused
 
     if (e.key === 'Enter') {
-        const typedWord = wordInput.value.trim().toLowerCase();
-        totalTyped += typedWord.length;
+        const typedWord = wordInput.value.trim();
+        if (typedWord) {
+            // Add the typed word to the bullet display
+            addBulletToDisplay(typedWord);
 
-        // Check if the typed word matches any asteroid
-        let hit = false;
-        for (let i = asteroids.length - 1; i >= 0; i--) {
-            const asteroid = asteroids[i];
-            if (asteroid.word.toLowerCase() === typedWord) {
-                // Correctly typed word - destroy asteroid
-                destroyAsteroid(i);
-                correctTyped += typedWord.length;
-                hit = true;
-                break;
+            const typedWordLower = typedWord.toLowerCase();
+            totalTyped += typedWordLower.length;
+
+            // Check if the typed word matches any asteroid
+            let hit = false;
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                const asteroid = asteroids[i];
+                if (asteroid.word.toLowerCase() === typedWordLower) {
+                    // Correctly typed word - destroy asteroid
+                    destroyAsteroid(i);
+                    correctTyped += typedWordLower.length;
+                    hit = true;
+                    break;
+                }
+            }
+
+            // Update accuracy
+            accuracy = Math.round((correctTyped / totalTyped) * 100) || 100;
+
+            // Calculate WPM (words per minute)
+            const timeElapsed = (new Date() - startTime) / 60000; // in minutes
+            wpm = Math.round((correctTyped / 5) / timeElapsed) || 0;
+
+            // Update UI
+            updateUI();
+
+            // Clear input
+            wordInput.value = '';
+
+            // If no hit, add penalty or continue
+            if (!hit) {
+                // Maybe add a miss penalty or feedback here
             }
         }
-
-        // Update accuracy
-        accuracy = Math.round((correctTyped / totalTyped) * 100) || 100;
-
-        // Calculate WPM (words per minute)
-        const timeElapsed = (new Date() - startTime) / 60000; // in minutes
-        wpm = Math.round((correctTyped / 5) / timeElapsed) || 0;
-
-        // Update UI
-        updateUI();
-
-        // Clear input
-        wordInput.value = '';
-
-        // If no hit, add penalty or continue
-        if (!hit) {
-            // Maybe add a miss penalty or feedback here
-        }
     }
+}
+
+// Add a bullet to the display area and fire it
+function addBulletToDisplay(word) {
+    const bulletDisplay = document.getElementById('bullet-display');
+
+    // Create a new bullet element in the display area
+    const bulletItem = document.createElement('div');
+    bulletItem.className = 'bullet-item';
+    bulletItem.textContent = word;
+
+    // Add to the display
+    bulletDisplay.appendChild(bulletItem);
+
+    // Auto-scroll to show the latest bullet
+    bulletDisplay.scrollTop = bulletDisplay.scrollHeight;
+
+    // Remove oldest bullets if we have more than 10
+    if (bulletDisplay.children.length > 10) {
+        bulletDisplay.removeChild(bulletDisplay.firstChild);
+    }
+
+    // Create a visual bullet that fires from the typing area to the game area
+    fireVisualBullet(word);
+}
+
+// Fire a visual bullet from the typing area to the game area
+function fireVisualBullet(word) {
+    if (gameState !== 'playing') return; // Only fire bullets during gameplay
+
+    const typingArea = document.getElementById('typing-area');
+    const gameArea = document.getElementById('game-area');
+    const bulletContainer = document.getElementById('bullet-container');
+
+    if (!typingArea || !gameArea || !bulletContainer) return;
+
+    const typingRect = typingArea.getBoundingClientRect();
+    const gameRect = gameArea.getBoundingClientRect();
+
+    // Create the visual bullet element
+    const bulletElement = document.createElement('div');
+    bulletElement.className = 'bullet';
+    bulletElement.textContent = word;  // Show the actual word as the bullet
+
+    // Position the bullet at the typing area (relative to game area)
+    const startX = typingRect.left - gameRect.left + (typingRect.width / 2);
+    const startY = typingRect.top - gameRect.top;
+
+    bulletElement.style.left = `${startX}px`;
+    bulletElement.style.top = `${startY}px`;
+
+    bulletContainer.appendChild(bulletElement);
+
+    // Add bullet data to the bullets array
+    const bulletData = {
+        element: bulletElement,
+        x: startX,
+        y: startY,
+        word: word,  // Store the word for potential advanced features
+        speed: 8,    // Speed at which the bullet travels upward
+        targetX: startX,  // We'll aim toward the spaceship's horizontal position
+        targetY: 0       // Target y coordinate (top of screen)
+    };
+
+    bullets.push(bulletData);
 }
 
 // Spawn a new asteroid
@@ -377,6 +613,29 @@ function endGame() {
     peakWpm.textContent = wpm;
     finalAccuracy.textContent = `${accuracy}%`;
 
+    // If user is logged in, update their best scores
+    if (currentUser) {
+        // Check if this is a new best score
+        if (score > (currentUser.bestScore || 0)) {
+            currentUser.bestScore = score;
+        }
+
+        // Check if this is a new best WPM
+        if (wpm > (currentUser.bestWpm || 0)) {
+            currentUser.bestWpm = wpm;
+        }
+
+        // Update user in localStorage
+        updateUserInStorage();
+
+        // Update start screen display
+        updateStartScreenUserInfo();
+
+        // Update game over screen with best scores
+        document.getElementById('best-score-final').textContent = currentUser.bestScore || 0;
+        document.getElementById('best-wpm-final').textContent = currentUser.bestWpm || 0;
+    }
+
     // Switch screens
     gameScreen.classList.remove('active');
     gameOverScreen.classList.add('active');
@@ -391,6 +650,60 @@ function endGame() {
     if (pauseOverlay) {
         pauseOverlay.classList.remove('active');
     }
+}
+
+// Update user data in localStorage
+function updateUserInStorage() {
+    if (!currentUser) return;
+
+    // Get all users
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+
+    // Update the current user's data
+    if (users[currentUser.username]) {
+        users[currentUser.username].bestScore = currentUser.bestScore;
+        users[currentUser.username].bestWpm = currentUser.bestWpm;
+
+        // Increment games played counter
+        users[currentUser.username].gamesPlayed = (users[currentUser.username].gamesPlayed || 0) + 1;
+    }
+
+    // Save updated users back to localStorage
+    localStorage.setItem('users', JSON.stringify(users));
+
+    // Also update the current user in localStorage
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+}
+
+// Show profile screen
+function showProfileScreen() {
+    gameOverScreen.classList.remove('active');
+    profileScreen.classList.add('active');
+
+    // Update profile screen with user data
+    if (currentUser) {
+        document.getElementById('profile-username').textContent = currentUser.username;
+        document.getElementById('profile-best-score').textContent = currentUser.bestScore || 0;
+        document.getElementById('profile-best-wpm').textContent = currentUser.bestWpm || 0;
+
+        // Get games played from user data
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        const userData = users[currentUser.username];
+        const gamesPlayed = userData ? userData.gamesPlayed || 0 : 0;
+        document.getElementById('profile-games-played').textContent = gamesPlayed;
+    }
+}
+
+// Handle user logout
+function handleLogout() {
+    // Clear current user
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+
+    // Go back to auth screen
+    profileScreen.classList.remove('active');
+    document.getElementById('auth-screen').classList.add('active');
+    gameState = 'start';
 }
 
 // Initialize music
