@@ -201,19 +201,20 @@ function destroyAsteroid(index) {
 function updateGame() {
     if (gameState !== 'playing') return;
 
-    // Move asteroids down
+    // Calculate spaceship position - it's positioned at bottom: 20px from game-container
+    // The spaceship height is about 3rem (48px approximately)
+    const gameArea = document.getElementById('game-area');
+    const gameAreaHeight = gameArea ? gameArea.offsetHeight : window.innerHeight;
+    const spaceshipPosition = gameAreaHeight - 68;  // 20px bottom margin + ~48px height
+
+    // Move asteroids down - process from the end to avoid index issues when removing
     for (let i = asteroids.length - 1; i >= 0; i--) {
         const asteroid = asteroids[i];
         asteroid.y += asteroid.speed;
         asteroid.element.style.top = `${asteroid.y}px`;
 
         // Check if asteroid reached the spaceship (lose a life condition)
-        // The spaceship is positioned with bottom: 20px in CSS and height ~48px (3rem)
-        // So the top of the spaceship is at window.innerHeight - 20 - 48
-        const spaceshipTop = window.innerHeight - 68; // 20px bottom margin + 48px approximate height
-
-        // Ensure we only check each asteroid once for collision
-        if (asteroid.y > spaceshipTop && !asteroid.reachedBottom) {
+        if (asteroid.y > spaceshipPosition && !asteroid.reachedBottom) {
             asteroid.reachedBottom = true; // Mark as reached bottom to prevent multiple triggers
 
             // Lose a life
@@ -229,12 +230,12 @@ function updateGame() {
             // Check if game over
             if (lives <= 0) {
                 endGame();
-                return;
+                return;  // Exit early to avoid further processing if game over
             }
         }
     }
 
-    // Move bullets up
+    // Move bullets up - also process from the end to avoid index issues when removing
     for (let i = bullets.length - 1; i >= 0; i--) {
         const bullet = bullets[i];
         bullet.y -= bullet.speed;
