@@ -172,7 +172,8 @@ function spawnAsteroid() {
         word: randomWord,
         x: startPos,
         y: 0,
-        speed: 1 + (level * 0.2) // Increase speed with level
+        speed: 1 + (level * 0.2), // Increase speed with level
+        reachedBottom: false // Flag to track if asteroid reached bottom
     };
 
     asteroidField.appendChild(asteroid);
@@ -210,7 +211,11 @@ function updateGame() {
         // The spaceship is positioned with bottom: 20px in CSS and height ~48px (3rem)
         // So the top of the spaceship is at window.innerHeight - 20 - 48
         const spaceshipTop = window.innerHeight - 68; // 20px bottom margin + 48px approximate height
-        if (asteroid.y > spaceshipTop) {
+
+        // Ensure we only check each asteroid once for collision
+        if (asteroid.y > spaceshipTop && !asteroid.reachedBottom) {
+            asteroid.reachedBottom = true; // Mark as reached bottom to prevent multiple triggers
+
             // Lose a life
             lives--;
             updateLivesDisplay();
