@@ -4,6 +4,7 @@ let score = 0;
 let level = 1;
 let wpm = 0;
 let accuracy = 100;
+let lives = 3; // Number of lives for the player
 let asteroids = [];
 let bullets = [];
 let powerups = [];
@@ -31,11 +32,16 @@ const wordInput = document.getElementById('word-input');
 const asteroidField = document.getElementById('asteroid-field');
 const bulletContainer = document.getElementById('bullet-container');
 
+let livesContainer; // Declare livesContainer variable to be initialized after DOM load
+
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-button');
     const restartBtn = document.getElementById('restart-button');
     const wordInput = document.getElementById('word-input');
+
+    // Initialize livesContainer after DOM has loaded
+    livesContainer = document.getElementById('lives-container');
 
     startBtn.addEventListener('click', startGame);
     restartBtn.addEventListener('click', startGame);
@@ -62,6 +68,7 @@ function startGame() {
     level = 1;
     wpm = 0;
     accuracy = 100;
+    lives = 3; // Reset lives to initial value
     asteroids = [];
     bullets = [];
     powerups = [];
@@ -71,6 +78,7 @@ function startGame() {
 
     // Update UI
     updateUI();
+    updateLivesDisplay(); // Initialize lives display
 
     // Switch screens
     startScreen.classList.remove('active');
@@ -97,7 +105,7 @@ function startGame() {
 
     // Start spawning asteroids
     spawnAsteroid();
-    spawnInterval = setInterval(spawnAsteroid, 2000 - (level * 100)); // Adjust spawn rate based on level
+    spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
 }
 
 // Handle user input
@@ -198,11 +206,26 @@ function updateGame() {
         asteroid.y += asteroid.speed;
         asteroid.element.style.top = `${asteroid.y}px`;
 
-        // Check if asteroid reached the spaceship (game over condition)
-        // The spaceship is at the bottom of the screen
-        if (asteroid.y > window.innerHeight * 0.9) {
-            endGame();
-            return;
+        // Check if asteroid reached the spaceship (lose a life condition)
+        // The spaceship is positioned with bottom: 20px in CSS and height ~48px (3rem)
+        // So the top of the spaceship is at window.innerHeight - 20 - 48
+        const spaceshipTop = window.innerHeight - 68; // 20px bottom margin + 48px approximate height
+        if (asteroid.y > spaceshipTop) {
+            // Lose a life
+            lives--;
+            updateLivesDisplay();
+
+            // Remove the asteroid that reached the bottom
+            if (asteroid.element.parentNode) {
+                asteroid.element.parentNode.removeChild(asteroid.element);
+            }
+            asteroids.splice(i, 1);
+
+            // Check if game over
+            if (lives <= 0) {
+                endGame();
+                return;
+            }
         }
     }
 
@@ -225,7 +248,12 @@ function updateGame() {
     const newLevel = Math.floor(score / 500) + 1;
     if (newLevel > level) {
         level = newLevel;
-        // Increase difficulty here
+
+        // Adjust spawn rate based on level
+        if (spawnInterval) {
+            clearInterval(spawnInterval);
+        }
+        spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
     }
 
     updateUI();
@@ -237,6 +265,32 @@ function updateUI() {
     levelValue.textContent = level;
     wpmValue.textContent = wpm;
     accuracyValue.textContent = `${accuracy}%`;
+}
+
+// Update the lives display with heart or skull icons
+function updateLivesDisplay() {
+    if (!livesContainer) return; // Guard clause in case element doesn't exist
+
+    livesContainer.innerHTML = ''; // Clear container
+
+    // Add life icons based on remaining lives
+    for (let i = 0; i < 3; i++) { // Assuming max 3 lives
+        const lifeIcon = document.createElement('img');
+
+        if (i < lives) {
+            // Active life - show heart of life
+            lifeIcon.src = 'assets/heart_of_life.jpg'; // Using your specified heart image
+            lifeIcon.alt = 'Life';
+            lifeIcon.className = 'life-icon active-life';
+        } else {
+            // Lost life - show death indicator
+            lifeIcon.src = 'assets/DIE.jpg'; // Using your specified death image
+            lifeIcon.alt = 'Lost Life';
+            lifeIcon.className = 'life-icon lost-life';
+        }
+
+        livesContainer.appendChild(lifeIcon);
+    }
 }
 
 // End the game

@@ -123,6 +123,34 @@ body {
     font-weight: bold;
 }
 
+/* Lives container styling */
+.lives-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 5px;
+}
+
+.life-icon {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+}
+
+.active-life {
+    filter: brightness(1.2);
+    transition: transform 0.2s ease;
+}
+
+.active-life:hover {
+    transform: scale(1.1);
+}
+
+.lost-life {
+    filter: grayscale(100%) opacity(0.6);
+    transition: filter 0.3s ease;
+}
+
 /* Game area styling */
 #game-area {
     position: relative;
@@ -138,6 +166,8 @@ body {
     transform: translateX(-50%);
     font-size: 3rem;
     z-index: 10;
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
 }
 
 /* Asteroid field */
