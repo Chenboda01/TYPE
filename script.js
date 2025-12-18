@@ -42,6 +42,7 @@ const musicTracks = [
     'assets/Twelve_Days_of_Christmas_Full_Instrumental.mp3'
 ];
 let isMusicPlaying = false;
+let isGamePaused = false;
 
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize music elements
     const musicToggle = document.getElementById('music-toggle');
     const volumeSlider = document.getElementById('volume-slider');
+    const pauseButton = document.getElementById('pause-button');
 
     startBtn.addEventListener('click', startGame);
     restartBtn.addEventListener('click', startGame);
@@ -64,6 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
     musicToggle.addEventListener('click', toggleMusic);
     volumeSlider.addEventListener('input', updateVolume);
 
+    // Game pause/resume controls
+    pauseButton.addEventListener('click', togglePause);
+
     // Global keydown listener to handle Enter key for start/restart
     document.addEventListener('keydown', function(event) {
         // Only allow Enter to start/restart when on the start or game over screen
@@ -72,6 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 startGame();
             } else if (gameState === 'gameOver') {
                 startGame();
+            }
+        }
+
+        // Add P key to pause/resume during gameplay
+        if (event.key === 'p' || event.key === 'P') {
+            if (gameState === 'playing') {
+                togglePause();
             }
         }
     });
@@ -84,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function startGame() {
     // Reset game state
     gameState = 'playing';
+    isGamePaused = false; // Reset pause state
     score = 0;
     level = 1;
     wpm = 0;
@@ -126,6 +139,11 @@ function startGame() {
     // Start spawning asteroids
     spawnAsteroid();
     spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+    // Update pause button state
+    const pauseButton = document.getElementById('pause-button');
+    pauseButton.textContent = '⏸️'; // Pause symbol
+    pauseButton.title = 'Pause Game';
 
     // Start background music if it's enabled
     if (isMusicPlaying) {
@@ -228,7 +246,7 @@ function destroyAsteroid(index) {
 
 // Update game state
 function updateGame() {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isGamePaused) return;
 
     // Calculate spaceship position - it's positioned at bottom: 20px from game-container
     // The spaceship height is about 3rem (48px approximately)
@@ -239,28 +257,40 @@ function updateGame() {
     // Move asteroids down - process from the end to avoid index issues when removing
     for (let i = asteroids.length - 1; i >= 0; i--) {
         const asteroid = asteroids[i];
-        asteroid.y += asteroid.speed;
-        asteroid.element.style.top = `${asteroid.y}px`;
 
-        // Check if asteroid reached the spaceship (lose a life condition)
-        if (asteroid.y > spaceshipPosition && !asteroid.reachedBottom) {
-            asteroid.reachedBottom = true; // Mark as reached bottom to prevent multiple triggers
+        // Only update position if the asteroid hasn't reached the bottom
+        if (!asteroid.reachedBottom) {
+            asteroid.y += asteroid.speed;
+            asteroid.element.style.top = `${asteroid.y}px`;
 
-            // Lose a life
-            lives--;
-            updateLivesDisplay();
+            // Check if asteroid reached the spaceship (lose a life condition)
+            if (asteroid.y > spaceshipPosition) {
+                asteroid.reachedBottom = true; // Mark as reached bottom to prevent multiple triggers
 
-            // Remove the asteroid that reached the bottom
+                // Lose a life
+                lives--;
+                updateLivesDisplay();
+
+                // Remove the asteroid that reached the bottom
+                if (asteroid.element.parentNode) {
+                    asteroid.element.parentNode.removeChild(asteroid.element);
+                }
+                asteroids.splice(i, 1);
+
+                // Check if game over
+                if (lives <= 0) {
+                    endGame();
+                    return;  // Exit early to avoid further processing if game over
+                }
+            }
+        }
+        // If the asteroid has already reached the bottom but is still in the array,
+        // remove it to keep the array clean
+        else if (asteroid.reachedBottom) {
             if (asteroid.element.parentNode) {
                 asteroid.element.parentNode.removeChild(asteroid.element);
             }
             asteroids.splice(i, 1);
-
-            // Check if game over
-            if (lives <= 0) {
-                endGame();
-                return;  // Exit early to avoid further processing if game over
-            }
         }
     }
 
@@ -331,6 +361,7 @@ function updateLivesDisplay() {
 // End the game
 function endGame() {
     gameState = 'gameOver';
+    isGamePaused = false; // Ensure pause state is reset
     clearInterval(gameInterval);
     if (spawnInterval) {
         clearInterval(spawnInterval);
@@ -393,5 +424,49 @@ function updateVolume() {
     const volume = volumeSlider.value / 100;
     if (backgroundMusic) {
         backgroundMusic.volume = volume;
+    }
+}
+
+// Toggle game pause/resume
+function togglePause() {
+    if (gameState !== 'playing') return; // Only allow pausing during gameplay
+
+    isGamePaused = !isGamePaused;
+
+    const pauseButton = document.getElementById('pause-button');
+
+    if (isGamePaused) {
+        // Pause the game
+        clearInterval(gameInterval);
+        if (spawnInterval) {
+            clearInterval(spawnInterval);
+        }
+
+        // Update button text
+        pauseButton.textContent = '▶️'; // Play symbol
+        pauseButton.title = 'Resume Game';
+
+        // Pause background music
+        if (backgroundMusic && !backgroundMusic.paused) {
+            backgroundMusic.pause();
+        }
+    } else {
+        // Resume the game
+        gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+
+        // Restart asteroid spawning if needed
+        if (spawnInterval) {
+            clearInterval(spawnInterval);
+        }
+        spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+        // Update button text
+        pauseButton.textContent = '⏸️'; // Pause symbol
+        pauseButton.title = 'Pause Game';
+
+        // Resume background music if it was playing
+        if (isMusicPlaying && backgroundMusic) {
+            backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+        }
     }
 }

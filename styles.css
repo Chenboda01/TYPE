@@ -208,6 +208,28 @@ body {
     cursor: pointer;
 }
 
+/* Game controls styling */
+#game-controls {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+}
+
+#pause-button {
+    background: none;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    font-size: 1.2rem;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#pause-button:hover {
+    background-color: rgba(0, 255, 0, 0.2);
+}
+
 /* Game area styling */
 #game-area {
     position: relative;
