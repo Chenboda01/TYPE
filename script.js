@@ -34,6 +34,15 @@ const bulletContainer = document.getElementById('bullet-container');
 
 let livesContainer; // Declare livesContainer variable to be initialized after DOM load
 
+// Audio elements
+let backgroundMusic;
+let currentTrackIndex = 0;
+const musicTracks = [
+    'assets/Jingle_Bells_Full.mp3',
+    'assets/Twelve_Days_of_Christmas_Full_Instrumental.mp3'
+];
+let isMusicPlaying = false;
+
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-button');
@@ -43,9 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize livesContainer after DOM has loaded
     livesContainer = document.getElementById('lives-container');
 
+    // Initialize music elements
+    const musicToggle = document.getElementById('music-toggle');
+    const volumeSlider = document.getElementById('volume-slider');
+
     startBtn.addEventListener('click', startGame);
     restartBtn.addEventListener('click', startGame);
     wordInput.addEventListener('keydown', handleInput);
+
+    // Music controls
+    musicToggle.addEventListener('click', toggleMusic);
+    volumeSlider.addEventListener('input', updateVolume);
 
     // Global keydown listener to handle Enter key for start/restart
     document.addEventListener('keydown', function(event) {
@@ -58,6 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Initialize music
+    initMusic();
 });
 
 // Start the game
@@ -106,6 +126,15 @@ function startGame() {
     // Start spawning asteroids
     spawnAsteroid();
     spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+    // Start background music if it's enabled
+    if (isMusicPlaying) {
+        if (!backgroundMusic) {
+            initMusic();
+        }
+        backgroundMusic.currentTime = 0; // Reset to beginning
+        backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+    }
 }
 
 // Handle user input
@@ -316,4 +345,53 @@ function endGame() {
     // Switch screens
     gameScreen.classList.remove('active');
     gameOverScreen.classList.add('active');
+
+    // Pause background music during game over
+    if (backgroundMusic) {
+        backgroundMusic.pause();
+    }
+}
+
+// Initialize music
+function initMusic() {
+    if (!backgroundMusic) {
+        backgroundMusic = new Audio(musicTracks[currentTrackIndex]);
+        backgroundMusic.volume = 0.5; // Default volume
+        backgroundMusic.loop = false; // We'll handle looping manually to switch tracks
+
+        // When one track ends, play the next one
+        backgroundMusic.addEventListener('ended', playNextTrack);
+    }
+}
+
+// Play the next track in the playlist
+function playNextTrack() {
+    currentTrackIndex = (currentTrackIndex + 1) % musicTracks.length;
+    backgroundMusic.src = musicTracks[currentTrackIndex];
+    if (isMusicPlaying) {
+        backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+    }
+}
+
+// Toggle music on/off
+function toggleMusic() {
+    if (isMusicPlaying) {
+        backgroundMusic.pause();
+        isMusicPlaying = false;
+    } else {
+        if (!backgroundMusic) {
+            initMusic();
+        }
+        backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+        isMusicPlaying = true;
+    }
+}
+
+// Update volume based on slider
+function updateVolume() {
+    const volumeSlider = document.getElementById('volume-slider');
+    const volume = volumeSlider.value / 100;
+    if (backgroundMusic) {
+        backgroundMusic.volume = volume;
+    }
 }

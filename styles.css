@@ -151,6 +151,63 @@ body {
     transition: filter 0.3s ease;
 }
 
+/* Music controls styling */
+#music-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 10px;
+}
+
+#music-toggle {
+    background: none;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    font-size: 1.2rem;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#music-toggle:hover {
+    background-color: rgba(0, 255, 0, 0.2);
+}
+
+#volume-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#volume-slider {
+    width: 80px;
+    height: 5px;
+    background: #003300;
+    outline: none;
+    border-radius: 5px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #00ff00;
+    cursor: pointer;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #00ff00;
+    cursor: pointer;
+}
+
 /* Game area styling */
 #game-area {
     position: relative;
