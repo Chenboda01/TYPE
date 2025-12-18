@@ -116,11 +116,13 @@ body {
     padding: 10px;
     background-color: rgba(0, 30, 0, 0.7);
     border-bottom: 1px solid #00ff00;
+    align-items: center;
 }
 
 #ui-panel div {
     font-size: 1.2rem;
     font-weight: bold;
+    margin-right: 20px; /* Add space between UI elements */
 }
 
 /* Lives container styling */
@@ -129,6 +131,11 @@ body {
     align-items: center;
     gap: 5px;
     margin-left: 5px;
+}
+
+/* Separate each UI section */
+#score, #level, #wpm, #accuracy {
+    margin-right: 20px;
 }
 
 .life-icon {
@@ -156,7 +163,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-left: 10px;
+    margin-left: 20px;
 }
 
 #music-toggle {
@@ -212,7 +219,7 @@ body {
 #game-controls {
     display: flex;
     align-items: center;
-    margin-left: 10px;
+    margin-left: 20px;
 }
 
 #pause-button {
