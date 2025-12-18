@@ -142,8 +142,12 @@ function startGame() {
 
     // Update pause button state
     const pauseButton = document.getElementById('pause-button');
+    const pauseOverlay = document.getElementById('pause-overlay');
     pauseButton.textContent = '⏸️'; // Pause symbol
     pauseButton.title = 'Pause Game';
+
+    // Make sure pause overlay is hidden at start
+    pauseOverlay.classList.remove('active');
 
     // Start background music if it's enabled
     if (isMusicPlaying) {
@@ -157,7 +161,7 @@ function startGame() {
 
 // Handle user input
 function handleInput(e) {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isGamePaused) return; // Don't handle input when paused
 
     if (e.key === 'Enter') {
         const typedWord = wordInput.value.trim().toLowerCase();
@@ -381,6 +385,12 @@ function endGame() {
     if (backgroundMusic) {
         backgroundMusic.pause();
     }
+
+    // Make sure pause overlay is hidden during game over
+    const pauseOverlay = document.getElementById('pause-overlay');
+    if (pauseOverlay) {
+        pauseOverlay.classList.remove('active');
+    }
 }
 
 // Initialize music
@@ -434,6 +444,7 @@ function togglePause() {
     isGamePaused = !isGamePaused;
 
     const pauseButton = document.getElementById('pause-button');
+    const pauseOverlay = document.getElementById('pause-overlay');
 
     if (isGamePaused) {
         // Pause the game
@@ -445,6 +456,9 @@ function togglePause() {
         // Update button text
         pauseButton.textContent = '▶️'; // Play symbol
         pauseButton.title = 'Resume Game';
+
+        // Show pause overlay
+        pauseOverlay.classList.add('active');
 
         // Pause background music
         if (backgroundMusic && !backgroundMusic.paused) {
@@ -463,6 +477,9 @@ function togglePause() {
         // Update button text
         pauseButton.textContent = '⏸️'; // Pause symbol
         pauseButton.title = 'Pause Game';
+
+        // Hide pause overlay
+        pauseOverlay.classList.remove('active');
 
         // Resume background music if it was playing
         if (isMusicPlaying && backgroundMusic) {
