@@ -216,6 +216,130 @@ body {
     box-shadow: 0 0 10px #00ff00;
 }
 
+/* Store screen */
+#store-content {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.powerup-packages {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.package-card {
+    background-color: rgba(0, 30, 0, 0.7);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.package-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+}
+
+.package-card h4 {
+    color: #00ff00;
+    margin-bottom: 10px;
+    font-size: 1.4rem;
+}
+
+.package-card p {
+    margin: 10px 0;
+}
+
+.package-card .price {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.buy-button {
+    background-color: #003300;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 10px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.buy-button:hover {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.current-powerups {
+    background-color: rgba(0, 20, 0, 0.5);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.current-powerups h4 {
+    color: #00ff00;
+    margin-bottom: 10px;
+}
+
+.current-powerups p {
+    margin: 5px 0;
+    font-size: 1.1rem;
+}
+
+.store-actions {
+    margin-top: 20px;
+}
+
+.store-actions button {
+    background-color: #003300;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 10px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.store-actions button:hover {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+/* Power-up indicator in game */
+#powerup-indicators {
+    display: flex;
+    gap: 20px;
+    margin-left: 20px;
+}
+
+.powerup-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background-color: rgba(0, 30, 0, 0.7);
+    border: 1px solid #00ff00;
+    border-radius: 3px;
+    font-size: 0.9rem;
+}
+
+.powerup-indicator.active {
+    background-color: rgba(0, 80, 0, 0.7);
+    box-shadow: 0 0 8px #00ff00;
+}
+
 .screen.active {
     opacity: 1;
     pointer-events: all;

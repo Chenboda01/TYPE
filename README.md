@@ -23,12 +23,16 @@ The basic game structure is now implemented with:
 
 ## How to Play
 
-1. Click "START MISSION" to begin the game
-2. Type the words shown on the falling asteroids and press Enter
-3. Successfully typing a word destroys the asteroid and increases your score
-4. Longer words give more points
-5. Don't let asteroids reach the bottom of the screen
-6. Try to survive as long as possible to achieve the highest score!
+1. Create an account or sign in using the authentication screen
+2. Click "START MISSION" to begin the game
+3. Type the words shown on the falling asteroids and press Enter
+4. Successfully typing a word destroys the asteroid and increases your score
+5. Longer words give more points
+6. Don't let asteroids reach the bottom of the screen - each asteroid that reaches the bottom costs you one life
+7. You start with 3 lives - try to survive as long as possible to achieve the highest score!
+8. Use the pause button (⏸️) to pause/resume the game during gameplay
+9. Toggle music on/off using the music button (🎵) and adjust volume with the slider
+10. View your profile and personal best scores from the game over screen
 
 ## File Structure
 

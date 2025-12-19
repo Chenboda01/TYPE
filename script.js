@@ -14,6 +14,14 @@ let correctTyped = 0;
 let gameInterval;
 let spawnInterval;
 
+// Power-up variables
+let activePowerups = {
+    shield: { active: false, endTime: null },
+    doubleDamage: { active: false, endTime: null },
+    slowMotion: { active: false, endTime: null }
+};
+let powerupSpawnInterval;
+
 // DOM elements
 const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
@@ -31,6 +39,7 @@ const finalAccuracy = document.getElementById('final-accuracy');
 const wordInput = document.getElementById('word-input');
 const asteroidField = document.getElementById('asteroid-field');
 const bulletContainer = document.getElementById('bullet-container');
+const powerupContainer = document.getElementById('powerup-container');
 
 let livesContainer; // Declare livesContainer variable to be initialized after DOM load
 
@@ -107,6 +116,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     logoutButton.addEventListener('click', handleLogout);
 
+    // Store controls
+    const viewStoreButton = document.getElementById('view-store');
+    const backToProfileButton = document.getElementById('back-to-profile');
+    const buyButtons = document.querySelectorAll('.buy-button');
+
+    viewStoreButton.addEventListener('click', showStoreScreen);
+    backToProfileButton.addEventListener('click', () => {
+        storeScreen.classList.remove('active');
+        profileScreen.classList.add('active');
+    });
+
+    // Add event listeners to buy buttons
+    buyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const packageCard = this.closest('.package-card');
+            const sets = parseInt(packageCard.dataset.sets);
+            purchasePowerupPackage(sets);
+        });
+    });
+
+    // Add click handlers for power-up indicators to activate power-ups during gameplay
+    document.getElementById('shield-indicator').addEventListener('click', () => {
+        if (currentUser && currentUser.shieldCount > 0) {
+            activatePowerup('shield');
+        }
+    });
+
+    document.getElementById('double-damage-indicator').addEventListener('click', () => {
+        if (currentUser && currentUser.doubleDamageCount > 0) {
+            activatePowerup('doubleDamage');
+        }
+    });
+
+    document.getElementById('slow-motion-indicator').addEventListener('click', () => {
+        if (currentUser && currentUser.slowMotionCount > 0) {
+            activatePowerup('slowMotion');
+        }
+    });
+
     // Global keydown listener to handle Enter key for start/restart
     document.addEventListener('keydown', function(event) {
         // Only allow Enter to start/restart when on the start or game over screen
@@ -179,6 +227,9 @@ function handleSignup() {
         password: password,
         bestScore: 0,
         bestWpm: 0,
+        shieldCount: 0,
+        doubleDamageCount: 0,
+        slowMotionCount: 0,
         registrationDate: new Date().toISOString()
     };
 
@@ -188,12 +239,16 @@ function handleSignup() {
     currentUser = {
         username: username,
         bestScore: 0,
-        bestWpm: 0
+        bestWpm: 0,
+        shieldCount: 0,
+        doubleDamageCount: 0,
+        slowMotionCount: 0
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
     // Switch to start screen
     showStartScreen();
+    updatePowerupCounts();
 }
 
 // Handle user login
@@ -219,12 +274,16 @@ function handleLogin() {
     currentUser = {
         username: username,
         bestScore: user.bestScore || 0,
-        bestWpm: user.bestWpm || 0
+        bestWpm: user.bestWpm || 0,
+        shieldCount: user.shieldCount || 0,
+        doubleDamageCount: user.doubleDamageCount || 0,
+        slowMotionCount: user.slowMotionCount || 0
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
     // Update UI with user stats
     updateStartScreenUserInfo();
+    updatePowerupCounts();
 
     // Switch to start screen
     showStartScreen();
@@ -246,6 +305,51 @@ function updateStartScreenUserInfo() {
         document.getElementById('current-username').textContent = currentUser.username;
         document.getElementById('best-score').textContent = currentUser.bestScore || 0;
         document.getElementById('best-wpm').textContent = currentUser.bestWpm || 0;
+    }
+}
+
+// Update user's power-up counts in the UI
+function updatePowerupCounts() {
+    if (currentUser) {
+        // Update store screen
+        document.getElementById('shield-count').textContent = currentUser.shieldCount || 0;
+        document.getElementById('double-damage-count').textContent = currentUser.doubleDamageCount || 0;
+        document.getElementById('slow-motion-count').textContent = currentUser.slowMotionCount || 0;
+
+        // Update game UI indicators
+        document.getElementById('shield-count-display').textContent = currentUser.shieldCount || 0;
+        document.getElementById('double-damage-count-display').textContent = currentUser.doubleDamageCount || 0;
+        document.getElementById('slow-motion-count-display').textContent = currentUser.slowMotionCount || 0;
+
+        // Update active indicators
+        updatePowerupIndicators();
+    }
+}
+
+// Update power-up indicators in the game UI
+function updatePowerupIndicators() {
+    // Update shield indicator
+    const shieldIndicator = document.getElementById('shield-indicator');
+    if ((currentUser.shieldCount || 0) > 0 || activePowerups.shield.active) {
+        shieldIndicator.classList.add('active');
+    } else {
+        shieldIndicator.classList.remove('active');
+    }
+
+    // Update double damage indicator
+    const ddIndicator = document.getElementById('double-damage-indicator');
+    if ((currentUser.doubleDamageCount || 0) > 0 || activePowerups.doubleDamage.active) {
+        ddIndicator.classList.add('active');
+    } else {
+        ddIndicator.classList.remove('active');
+    }
+
+    // Update slow motion indicator
+    const smIndicator = document.getElementById('slow-motion-indicator');
+    if ((currentUser.slowMotionCount || 0) > 0 || activePowerups.slowMotion.active) {
+        smIndicator.classList.add('active');
+    } else {
+        smIndicator.classList.remove('active');
     }
 }
 
@@ -274,9 +378,15 @@ function startGame() {
     correctTyped = 0;
     startTime = new Date();
 
+    // Reset active powerups
+    activePowerups.shield = { active: false, endTime: null };
+    activePowerups.doubleDamage = { active: false, endTime: null };
+    activePowerups.slowMotion = { active: false, endTime: null };
+
     // Update UI
     updateUI();
     updateLivesDisplay(); // Initialize lives display
+    updatePowerupCounts(); // Update power-up counts in UI
 
     // Switch screens
     startScreen.classList.remove('active');
@@ -286,6 +396,7 @@ function startGame() {
     // Clear previous game elements
     asteroidField.innerHTML = '';
     bulletContainer.innerHTML = '';
+    powerupContainer.innerHTML = ''; // Clear powerups
 
     // Focus on input field
     const input = document.getElementById('word-input');
@@ -301,9 +412,19 @@ function startGame() {
         clearInterval(spawnInterval);
     }
 
+    // Clear any existing powerup spawn interval
+    if (powerupSpawnInterval) {
+        clearInterval(powerupSpawnInterval);
+    }
+
     // Start spawning asteroids
     spawnAsteroid();
     spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+    // Start spawning powerups (starting at level 3)
+    if (level >= 3) {
+        powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
+    }
 
     // Update pause button state
     const pauseButton = document.getElementById('pause-button');
@@ -471,10 +592,17 @@ function spawnAsteroid() {
 function destroyAsteroid(index) {
     const asteroid = asteroids[index];
     asteroid.element.classList.add('explode');
-    
-    // Add to score based on word length
-    score += asteroid.word.length * 10;
-    
+
+    // Calculate score based on word length and active powerups
+    let baseScore = asteroid.word.length * 10;
+
+    // Apply double damage if active
+    if (activePowerups.doubleDamage.active) {
+        baseScore *= 2;
+    }
+
+    score += baseScore;
+
     // Remove asteroid after animation
     setTimeout(() => {
         if (asteroid.element.parentNode) {
@@ -488,11 +616,14 @@ function destroyAsteroid(index) {
 function updateGame() {
     if (gameState !== 'playing' || isGamePaused) return;
 
-    // Calculate spaceship position - it's positioned at bottom: 20px from game-container
-    // The spaceship height is about 3rem (48px approximately)
+    // Calculate spaceship position reliably
+    // Spaceship is positioned with bottom: 20px and has ~48px height (3rem)
     const gameArea = document.getElementById('game-area');
     const gameAreaHeight = gameArea ? gameArea.offsetHeight : window.innerHeight;
     const spaceshipPosition = gameAreaHeight - 68;  // 20px bottom margin + ~48px height
+
+    // Slow motion effect - modify game speed
+    const speedFactor = activePowerups.slowMotion.active ? 0.5 : 1; // Half speed during slow motion
 
     // Move asteroids down - process from the end to avoid index issues when removing
     for (let i = asteroids.length - 1; i >= 0; i--) {
@@ -500,27 +631,37 @@ function updateGame() {
 
         // Only update position if the asteroid hasn't reached the bottom
         if (!asteroid.reachedBottom) {
-            asteroid.y += asteroid.speed;
+            asteroid.y += asteroid.speed * speedFactor;  // Apply speed factor
             asteroid.element.style.top = `${asteroid.y}px`;
 
             // Check if asteroid reached the spaceship (lose a life condition)
-            if (asteroid.y > spaceshipPosition) {
+            // Use a more precise check to prevent multiple collisions
+            if (asteroid.y >= spaceshipPosition && !asteroid.reachedBottom) {
                 asteroid.reachedBottom = true; // Mark as reached bottom to prevent multiple triggers
 
-                // Lose a life
-                lives--;
-                updateLivesDisplay();
+                // If shield is active, protect the player instead of losing a life
+                if (activePowerups.shield.active) {
+                    // Remove the asteroid without losing a life
+                    if (asteroid.element.parentNode) {
+                        asteroid.element.parentNode.removeChild(asteroid.element);
+                    }
+                    asteroids.splice(i, 1);
+                } else {
+                    // Lose a life (with safety check to prevent negative lives)
+                    lives = Math.max(0, lives - 1);
+                    updateLivesDisplay();
 
-                // Remove the asteroid that reached the bottom
-                if (asteroid.element.parentNode) {
-                    asteroid.element.parentNode.removeChild(asteroid.element);
-                }
-                asteroids.splice(i, 1);
+                    // Remove the asteroid that reached the bottom
+                    if (asteroid.element.parentNode) {
+                        asteroid.element.parentNode.removeChild(asteroid.element);
+                    }
+                    asteroids.splice(i, 1);
 
-                // Check if game over
-                if (lives <= 0) {
-                    endGame();
-                    return;  // Exit early to avoid further processing if game over
+                    // Check if game over
+                    if (lives <= 0) {
+                        endGame();
+                        return;  // Exit early to avoid further processing if game over
+                    }
                 }
             }
         }
@@ -537,7 +678,7 @@ function updateGame() {
     // Move bullets up - also process from the end to avoid index issues when removing
     for (let i = bullets.length - 1; i >= 0; i--) {
         const bullet = bullets[i];
-        bullet.y -= bullet.speed;
+        bullet.y -= bullet.speed * speedFactor;  // Apply speed factor
         bullet.element.style.top = `${bullet.y}px`;
 
         // Remove bullets that go off-screen
@@ -546,6 +687,43 @@ function updateGame() {
                 bullet.element.parentNode.removeChild(bullet.element);
             }
             bullets.splice(i, 1);
+        }
+    }
+
+    // Move powerups down and check for spaceship collision
+    for (let i = powerups.length - 1; i >= 0; i--) {
+        const powerup = powerups[i];
+        powerup.y += powerup.speed * speedFactor;  // Apply speed factor
+        powerup.element.style.top = `${powerup.y}px`;
+
+        // Check if powerup reached the bottom (spaceship area)
+        const gameArea = document.getElementById('game-area');
+        const gameAreaHeight = gameArea ? gameArea.offsetHeight : window.innerHeight;
+        const spaceshipPosition = gameAreaHeight - 68;  // 20px bottom margin + ~48px height
+
+        if (powerup.y >= spaceshipPosition) {
+            // Apply the powerup to the player
+            if (currentUser) {
+                // Add the powerup to the user's inventory
+                const powerupType = powerup.type;
+                currentUser[powerupType + 'Count'] = (currentUser[powerupType + 'Count'] || 0) + 1;
+
+                // Remove the powerup from the game
+                if (powerup.element.parentNode) {
+                    powerup.element.parentNode.removeChild(powerup.element);
+                }
+                powerups.splice(i, 1);
+
+                // Update the UI
+                updatePowerupCounts();
+            }
+        }
+        // Remove powerups that go off-screen at the bottom (but not as far as asteroids)
+        else if (powerup.y > window.innerHeight) {
+            if (powerup.element.parentNode) {
+                powerup.element.parentNode.removeChild(powerup.element);
+            }
+            powerups.splice(i, 1);
         }
     }
 
@@ -559,7 +737,15 @@ function updateGame() {
             clearInterval(spawnInterval);
         }
         spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+        // Start spawning powerups at level 3
+        if (level >= 3 && !powerupSpawnInterval) {
+            powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
+        }
     }
+
+    // Check if any active powerups should end
+    checkPowerupTimers();
 
     updateUI();
 }
@@ -666,6 +852,11 @@ function updateUserInStorage() {
 
         // Increment games played counter
         users[currentUser.username].gamesPlayed = (users[currentUser.username].gamesPlayed || 0) + 1;
+
+        // Save powerup counts to user data
+        users[currentUser.username].shieldCount = currentUser.shieldCount || 0;
+        users[currentUser.username].doubleDamageCount = currentUser.doubleDamageCount || 0;
+        users[currentUser.username].slowMotionCount = currentUser.slowMotionCount || 0;
     }
 
     // Save updated users back to localStorage
@@ -691,6 +882,9 @@ function showProfileScreen() {
         const userData = users[currentUser.username];
         const gamesPlayed = userData ? userData.gamesPlayed || 0 : 0;
         document.getElementById('profile-games-played').textContent = gamesPlayed;
+
+        // Update power-up counts
+        updatePowerupCounts();
     }
 }
 
@@ -704,6 +898,133 @@ function handleLogout() {
     profileScreen.classList.remove('active');
     document.getElementById('auth-screen').classList.add('active');
     gameState = 'start';
+}
+
+// Spawn a power-up
+function spawnPowerup() {
+    if (gameState !== 'playing' || isGamePaused) return;
+
+    // Power-up types
+    const powerupTypes = ['shield', 'doubleDamage', 'slowMotion'];
+    const randomType = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
+
+    // Create power-up element
+    const powerup = document.createElement('div');
+    powerup.className = 'powerup';
+    powerup.dataset.type = randomType;
+
+    // Add appropriate icon/text based on type
+    switch(randomType) {
+        case 'shield':
+            powerup.textContent = '🛡️';
+            powerup.title = 'Shield';
+            break;
+        case 'doubleDamage':
+            powerup.textContent = '⚔️';
+            powerup.title = 'Double Damage';
+            break;
+        case 'slowMotion':
+            powerup.textContent = '⏱️';
+            powerup.title = 'Slow Motion';
+            break;
+    }
+
+    // Position randomly along the top of the screen
+    const startPos = Math.random() * window.innerWidth;
+    powerup.style.left = `${startPos}px`;
+    powerup.style.top = '0px';
+
+    // Store power-up data
+    const powerupData = {
+        element: powerup,
+        type: randomType,
+        x: startPos,
+        y: 0,
+        speed: 1 + (level * 0.1) // Power-ups move slightly slower than asteroids
+    };
+
+    powerupContainer.appendChild(powerup);
+    powerups.push(powerupData);
+}
+
+// Function to activate a power-up
+function activatePowerup(type) {
+    // Reduce the count of this power-up type
+    if (currentUser[type + 'Count'] > 0) {
+        currentUser[type + 'Count']--;
+        updatePowerupCounts();
+
+        // Apply the power-up effect
+        const duration = 10000; // 10 seconds duration
+        const endTime = Date.now() + duration;
+
+        switch(type) {
+            case 'shield':
+                activePowerups.shield = { active: true, endTime: endTime };
+                // Visual feedback could be added here
+                break;
+            case 'doubleDamage':
+                activePowerups.doubleDamage = { active: true, endTime: endTime };
+                // Visual feedback could be added here
+                break;
+            case 'slowMotion':
+                activePowerups.slowMotion = { active: true, endTime: endTime };
+                // Visual feedback could be added here
+                break;
+        }
+    }
+}
+
+// Check and end active power-ups
+function checkPowerupTimers() {
+    const now = Date.now();
+
+    // Check shield
+    if (activePowerups.shield.active && now >= activePowerups.shield.endTime) {
+        activePowerups.shield.active = false;
+        updatePowerupIndicators();
+    }
+
+    // Check double damage
+    if (activePowerups.doubleDamage.active && now >= activePowerups.doubleDamage.endTime) {
+        activePowerups.doubleDamage.active = false;
+        updatePowerupIndicators();
+    }
+
+    // Check slow motion
+    if (activePowerups.slowMotion.active && now >= activePowerups.slowMotion.endTime) {
+        activePowerups.slowMotion.active = false;
+        updatePowerupIndicators();
+    }
+}
+
+// Show store screen
+function showStoreScreen() {
+    profileScreen.classList.remove('active');
+    storeScreen.classList.add('active');
+
+    // Update powerup counts in the store
+    updatePowerupCounts();
+}
+
+// Purchase a power-up package
+function purchasePowerupPackage(sets) {
+    // For now, just add the power-ups to the user's account
+    // In a real implementation, this would connect to a payment processor
+    if (currentUser) {
+        currentUser.shieldCount = (currentUser.shieldCount || 0) + sets;
+        currentUser.doubleDamageCount = (currentUser.doubleDamageCount || 0) + sets;
+        currentUser.slowMotionCount = (currentUser.slowMotionCount || 0) + sets;
+
+        // Save to localStorage
+        updateUserInStorage();
+
+        // Update UI
+        updatePowerupCounts();
+
+        // Show confirmation
+        alert(`Successfully purchased ${sets} set(s) of power-ups!`);
+    }
 }
 
 // Initialize music

@@ -78,6 +78,21 @@
                 <div id="game-controls">
                     <button id="pause-button" title="Pause/Resume Game">⏸️</button>
                 </div>
+
+                <div id="powerup-indicators">
+                    <div id="shield-indicator" class="powerup-indicator">
+                        <span>🛡️</span>
+                        <span id="shield-count-display">0</span>
+                    </div>
+                    <div id="double-damage-indicator" class="powerup-indicator">
+                        <span>⚔️</span>
+                        <span id="double-damage-count-display">0</span>
+                    </div>
+                    <div id="slow-motion-indicator" class="powerup-indicator">
+                        <span>⏱️</span>
+                        <span id="slow-motion-count-display">0</span>
+                    </div>
+                </div>
             </div>
             <div id="pause-overlay" class="pause-overlay">
                 <div class="pause-message">PAUSED</div>
@@ -153,8 +168,51 @@
                 </div>
 
                 <div class="profile-actions">
+                    <button id="view-store">View Store</button>
                     <button id="back-to-game">Back to Game</button>
                     <button id="logout-button">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Store Screen -->
+        <div id="store-screen" class="screen">
+            <h2>Power-up Store</h2>
+            <div id="store-content">
+                <h3>Purchase Power-up Sets</h3>
+
+                <div class="powerup-packages">
+                    <div class="package-card" data-sets="1">
+                        <h4>1 Set</h4>
+                        <p>Includes: 1 Shield, 1 Double Damage, 1 Slow Motion</p>
+                        <p class="price">$15/month</p>
+                        <button class="buy-button">Buy Now</button>
+                    </div>
+
+                    <div class="package-card" data-sets="2">
+                        <h4>2 Sets</h4>
+                        <p>Includes: 2 Shields, 2 Double Damage, 2 Slow Motion</p>
+                        <p class="price">$30/month</p>
+                        <button class="buy-button">Buy Now</button>
+                    </div>
+
+                    <div class="package-card" data-sets="10">
+                        <h4>10 Sets</h4>
+                        <p>Includes: 10 Shields, 10 Double Damage, 10 Slow Motion</p>
+                        <p class="price">$150/month</p>
+                        <button class="buy-button">Buy Now</button>
+                    </div>
+                </div>
+
+                <div class="current-powerups">
+                    <h4>Your Power-ups</h4>
+                    <p>Shields: <span id="shield-count">0</span></p>
+                    <p>Double Damage: <span id="double-damage-count">0</span></p>
+                    <p>Slow Motion: <span id="slow-motion-count">0</span></p>
+                </div>
+
+                <div class="store-actions">
+                    <button id="back-to-profile">Back to Profile</button>
                 </div>
             </div>
         </div>
