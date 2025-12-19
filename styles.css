@@ -340,6 +340,28 @@ body {
     box-shadow: 0 0 8px #00ff00;
 }
 
+/* Shop button styling */
+#shop-container {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+#shop-button {
+    background: none;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    font-size: 1.2rem;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#shop-button:hover {
+    background-color: rgba(0, 255, 0, 0.2);
+}
+
 .screen.active {
     opacity: 1;
     pointer-events: all;

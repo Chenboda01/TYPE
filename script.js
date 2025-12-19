@@ -40,6 +40,7 @@ const wordInput = document.getElementById('word-input');
 const asteroidField = document.getElementById('asteroid-field');
 const bulletContainer = document.getElementById('bullet-container');
 const powerupContainer = document.getElementById('powerup-container');
+const storeScreen = document.getElementById('store-screen');
 
 let livesContainer; // Declare livesContainer variable to be initialized after DOM load
 
@@ -119,12 +120,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Store controls
     const viewStoreButton = document.getElementById('view-store');
     const backToProfileButton = document.getElementById('back-to-profile');
+    const backToGameFromStoreButton = document.getElementById('back-to-game-from-store');
     const buyButtons = document.querySelectorAll('.buy-button');
 
     viewStoreButton.addEventListener('click', showStoreScreen);
     backToProfileButton.addEventListener('click', () => {
         storeScreen.classList.remove('active');
         profileScreen.classList.add('active');
+    });
+
+    backToGameFromStoreButton.addEventListener('click', () => {
+        storeScreen.classList.remove('active');
+        gameScreen.classList.add('active');
+        gameState = 'playing';
+        // If game was paused, unpause it
+        if (isGamePaused) {
+            togglePause();
+        }
     });
 
     // Add event listeners to buy buttons
@@ -152,6 +164,36 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('slow-motion-indicator').addEventListener('click', () => {
         if (currentUser && currentUser.slowMotionCount > 0) {
             activatePowerup('slowMotion');
+        }
+    });
+
+    // Add shop button event listener
+    const shopButton = document.getElementById('shop-button');
+    shopButton.addEventListener('click', () => {
+        // If on start screen or game over screen, go to profile first, then shop
+        if (gameState === 'start' || gameState === 'gameOver') {
+            if (currentUser) {
+                // Switch to profile screen first, then shop
+                if (gameState === 'start') {
+                    startScreen.classList.remove('active');
+                    profileScreen.classList.add('active');
+                } else {
+                    gameOverScreen.classList.remove('active');
+                    profileScreen.classList.add('active');
+                }
+                // Then switch to store
+                profileScreen.classList.remove('active');
+                storeScreen.classList.add('active');
+            }
+        } else {
+            // If in gameplay, pause the game and show the shop
+            if (gameState === 'playing' && !isGamePaused) {
+                togglePause();
+            }
+            // Show store screen
+            gameScreen.classList.remove('active');
+            storeScreen.classList.add('active');
+            gameState = 'shop';
         }
     });
 
@@ -363,7 +405,18 @@ function startGame() {
         return;
     }
 
-    // Reset game state
+    // If returning from shop, just switch screens but keep gameplay going
+    if (gameState === 'shop') {
+        storeScreen.classList.remove('active');
+        gameScreen.classList.add('active');
+        // If game was paused, unpause it
+        if (isGamePaused) {
+            togglePause();
+        }
+        return;
+    }
+
+    // Reset game state for a new game
     gameState = 'playing';
     isGamePaused = false; // Reset pause state
     score = 0;
@@ -443,6 +496,9 @@ function startGame() {
         backgroundMusic.currentTime = 0; // Reset to beginning
         backgroundMusic.play().catch(e => console.log("Audio play error:", e));
     }
+
+    // Update powerup counts display
+    updatePowerupCounts();
 }
 
 // Handle user input
@@ -793,6 +849,11 @@ function endGame() {
         clearInterval(spawnInterval);
     }
 
+    // Clear powerup spawn interval
+    if (powerupSpawnInterval) {
+        clearInterval(powerupSpawnInterval);
+    }
+
     // Update game over screen
     finalScore.textContent = score;
     finalLevel.textContent = level;
@@ -820,6 +881,11 @@ function endGame() {
         // Update game over screen with best scores
         document.getElementById('best-score-final').textContent = currentUser.bestScore || 0;
         document.getElementById('best-wpm-final').textContent = currentUser.bestWpm || 0;
+    }
+
+    // If player was in the shop, return to game over screen
+    if (gameState === 'shop') {
+        storeScreen.classList.remove('active');
     }
 
     // Switch screens
