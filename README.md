@@ -30,7 +30,7 @@ The basic game structure is now implemented with:
 5. Longer words give more points
 6. Don't let asteroids reach the bottom of the screen - each asteroid that reaches the bottom costs you one life
 7. You start with 3 lives - try to survive as long as possible to achieve the highest score!
-8. Use the pause button (⏸️) to pause/resume the game during gameplay
+8. Press P on your keyboard to pause/resume the game during gameplay
 9. Toggle music on/off using the music button (🎵) and adjust volume with the slider
 10. View your profile and personal best scores from the game over screen
 
