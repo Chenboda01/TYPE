@@ -560,9 +560,6 @@ function handleInput(e) {
 
             // If no hit, track the mistake and apply penalties based on difficulty
             if (!hit) {
-                // Increment consecutive mistakes counter
-                consecutiveMistakes++;
-
                 // Add visual feedback for the mistake
                 wordInput.style.backgroundColor = '#ffcccc'; // Light red background
                 setTimeout(() => {
@@ -572,20 +569,22 @@ function handleInput(e) {
                 // Small score penalty for incorrect typing
                 score = Math.max(0, score - 2);
 
-                // Apply life penalty based on consecutive mistakes and difficulty
+                // Apply life penalty based on difficulty only
                 let shouldLoseLife = false;
 
                 switch(difficulty) {
                     case 'easy':
-                        // On easy, only lose life after 3 consecutive mistakes
-                        if (consecutiveMistakes >= 3) {
+                        // On easy, lose life for every 5th mistake
+                        consecutiveMistakes++;
+                        if (consecutiveMistakes >= 5) {
                             shouldLoseLife = true;
                             consecutiveMistakes = 0; // Reset counter after penalty
                         }
                         break;
                     case 'medium':
-                        // On medium, lose life after 2 consecutive mistakes
-                        if (consecutiveMistakes >= 2) {
+                        // On medium, lose life for every 3rd mistake
+                        consecutiveMistakes++;
+                        if (consecutiveMistakes >= 3) {
                             shouldLoseLife = true;
                             consecutiveMistakes = 0; // Reset counter after penalty
                         }
@@ -596,7 +595,8 @@ function handleInput(e) {
                         break;
                     default:
                         // Default to medium difficulty behavior
-                        if (consecutiveMistakes >= 2) {
+                        consecutiveMistakes++;
+                        if (consecutiveMistakes >= 3) {
                             shouldLoseLife = true;
                             consecutiveMistakes = 0; // Reset counter after penalty
                         }
@@ -615,6 +615,12 @@ function handleInput(e) {
             } else {
                 // If the player made a correct input, reset the consecutive mistake counter
                 consecutiveMistakes = 0;
+
+                // Add visual feedback for correct input
+                wordInput.style.backgroundColor = '#ccffcc'; // Light green background
+                setTimeout(() => {
+                    wordInput.style.backgroundColor = ''; // Reset background
+                }, 300); // Reset after 300ms
             }
         }
     }
