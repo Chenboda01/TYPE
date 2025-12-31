@@ -224,6 +224,44 @@
                     </div>
                 </div>
 
+                <!-- Payment Form (Initially Hidden) -->
+                <div id="payment-form" class="payment-form hidden">
+                    <h3>Payment Information</h3>
+                    <form id="card-payment-form">
+                        <div class="form-group">
+                            <label for="card-number">Card Number</label>
+                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expiry-date">Expiry Date</label>
+                                <input type="text" id="expiry-date" placeholder="MM/YY" maxlength="5" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cvv">CVV</label>
+                                <input type="text" id="cvv" placeholder="123" maxlength="4" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cardholder-name">Cardholder Name</label>
+                            <input type="text" id="cardholder-name" placeholder="John Doe" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="billing-zip">Billing ZIP</label>
+                            <input type="text" id="billing-zip" placeholder="12345" required>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="cancel-payment">Cancel</button>
+                            <button type="submit">Complete Purchase</button>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="current-powerups">
                     <h4>Your Power-ups</h4>
                     <p>Shields: <span id="shield-count">0</span></p>

@@ -747,6 +747,86 @@ body {
     animation: explode 0.5s forwards;
 }
 
+/* Payment form styling */
+.payment-form {
+    background-color: rgba(0, 30, 0, 0.9);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px 0;
+    max-width: 400px;
+    width: 100%;
+    text-align: left;
+}
+
+.payment-form h3 {
+    color: #00ff00;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #00ff00;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    background-color: #000;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    font-family: 'Courier New', Courier, monospace;
+    border-radius: 3px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.form-actions button {
+    padding: 10px 20px;
+    background-color: #003300;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.form-actions button:hover {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.form-actions button[type="submit"] {
+    background-color: #006600;
+}
+
+.form-actions button[type="submit"]:hover {
+    background-color: #00ff00;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     #game-container {

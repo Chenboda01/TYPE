@@ -143,10 +143,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listeners to buy buttons
     buyButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        // Remove any existing listeners to avoid duplicates
+        button.replaceWith(button.cloneNode(true));
+        const newButton = button.parentNode.lastElementChild;
+        newButton.addEventListener('click', function() {
             const packageCard = this.closest('.package-card');
             const sets = parseInt(packageCard.dataset.sets);
-            purchasePowerupPackage(sets);
+            initiatePurchase(sets);
         });
     });
 
@@ -1140,10 +1143,149 @@ function showStoreScreen() {
 
     // Update powerup counts in the store
     updatePowerupCounts();
+
+    // Add event listeners for buy buttons
+    const buyButtons = document.querySelectorAll('.buy-button');
+    buyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const packageCard = this.closest('.package-card');
+            const sets = parseInt(packageCard.dataset.sets);
+            initiatePurchase(sets);
+        });
+    });
+
+    // Add event listener for cancel payment button
+    const cancelPaymentButton = document.getElementById('cancel-payment');
+    if (cancelPaymentButton) {
+        cancelPaymentButton.addEventListener('click', function() {
+            document.getElementById('payment-form').classList.add('hidden');
+        });
+    }
+
+    // Add event listener for the payment form
+    const paymentForm = document.getElementById('card-payment-form');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', handlePayment);
+    }
+}
+
+// Initiate purchase process
+function initiatePurchase(sets) {
+    // Show the payment form
+    document.getElementById('payment-form').classList.remove('hidden');
+
+    // Store the number of sets being purchased for later use
+    window.currentPurchaseSets = sets;
+}
+
+// Handle payment submission
+function handlePayment(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    // Get form values
+    const cardNumber = document.getElementById('card-number').value;
+    const expiryDate = document.getElementById('expiry-date').value;
+    const cvv = document.getElementById('cvv').value;
+    const cardholderName = document.getElementById('cardholder-name').value;
+    const billingZip = document.getElementById('billing-zip').value;
+
+    // Basic validation
+    if (!validateCardInfo(cardNumber, expiryDate, cvv, cardholderName, billingZip)) {
+        alert('Please enter valid card information.');
+        return;
+    }
+
+    // In a real implementation, you would send this data to a payment processor
+    // For now, we'll simulate a successful payment
+    processPayment(cardNumber, expiryDate, cvv, cardholderName, billingZip, window.currentPurchaseSets);
+}
+
+// Validate card information
+function validateCardInfo(cardNumber, expiryDate, cvv, cardholderName, billingZip) {
+    // Basic validation checks
+    const cardNumberClean = cardNumber.replace(/\s/g, ''); // Remove spaces
+
+    // Check if card number is valid (basic check)
+    if (!/^\d{13,19}$/.test(cardNumberClean)) {
+        return false;
+    }
+
+    // Check if expiry date is valid (basic check)
+    if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(expiryDate)) {
+        return false;
+    }
+
+    // Check if CVV is valid (basic check)
+    if (!/^\d{3,4}$/.test(cvv)) {
+        return false;
+    }
+
+    // Check if cardholder name is provided
+    if (!cardholderName.trim()) {
+        return false;
+    }
+
+    // Check if billing ZIP is provided
+    if (!billingZip.trim()) {
+        return false;
+    }
+
+    return true;
+}
+
+// Process the payment (simulated)
+function processPayment(cardNumber, expiryDate, cvv, cardholderName, billingZip, sets) {
+    // In a real implementation, you would send this data to a payment processor
+    // For this demo, we'll simulate a successful transaction
+
+    // Show a loading state or processing message
+    const submitButton = document.querySelector('#card-payment-form button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Processing...';
+    submitButton.disabled = true;
+
+    // Simulate payment processing delay
+    setTimeout(() => {
+        // Simulate successful payment
+        // In a real app, this would be the response from the payment processor
+        const paymentSuccessful = true; // This would come from the payment processor response
+
+        if (paymentSuccessful) {
+            // Add the purchased power-ups to the user's account
+            if (currentUser) {
+                currentUser.shieldCount = (currentUser.shieldCount || 0) + sets;
+                currentUser.doubleDamageCount = (currentUser.doubleDamageCount || 0) + sets;
+                currentUser.slowMotionCount = (currentUser.slowMotionCount || 0) + sets;
+
+                // Save to localStorage
+                updateUserInStorage();
+
+                // Update UI
+                updatePowerupCounts();
+
+                // Hide the payment form
+                document.getElementById('payment-form').classList.add('hidden');
+
+                // Reset form
+                document.getElementById('card-payment-form').reset();
+
+                // Show confirmation
+                alert(`Payment successful! You've purchased ${sets} set(s) of power-ups!`);
+            }
+        } else {
+            // Payment failed
+            alert('Payment failed. Please try again with a different card.');
+        }
+
+        // Reset button
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    }, 2000); // Simulate 2 seconds of processing time
 }
 
 // Purchase a power-up package
 function purchasePowerupPackage(sets) {
+    // This function is now deprecated in favor of the new payment flow
     // For now, just add the power-ups to the user's account
     // In a real implementation, this would connect to a payment processor
     if (currentUser) {
