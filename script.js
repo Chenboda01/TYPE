@@ -129,15 +129,24 @@ document.addEventListener('DOMContentLoaded', () => {
     backToProfileButton.addEventListener('click', () => {
         storeScreen.classList.remove('active');
         profileScreen.classList.add('active');
+
+        // If we came from gameplay, we should return to gameplay when going back
+        // Don't change the game state here, just switch screens
     });
 
     backToGameFromStoreButton.addEventListener('click', () => {
         storeScreen.classList.remove('active');
         gameScreen.classList.add('active');
-        gameState = 'playing';
-        // If game was paused, unpause it
-        if (isGamePaused) {
+        // Restore the previous game state
+        gameState = window.previousGameState || 'playing';
+        // If game was paused and we're returning to gameplay, unpause it
+        if (gameState === 'playing' && isGamePaused) {
             togglePause();
+        } else if (gameState === 'playing' && !isGamePaused) {
+            // If game wasn't paused, ensure it's running by restarting the game interval if needed
+            if (!gameInterval) {
+                gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+            }
         }
     });
 
@@ -195,6 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (gameState === 'playing' && !isGamePaused) {
                 togglePause();
             }
+            // Store the previous game state to return to it later
+            window.previousGameState = gameState;
             // Show store screen
             gameScreen.classList.remove('active');
             storeScreen.classList.add('active');
