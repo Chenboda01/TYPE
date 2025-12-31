@@ -197,7 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Global keydown listener to handle Enter key for start/restart
+    // Add resume button event listener
+    const resumeButton = document.getElementById('resume-button');
+    resumeButton.addEventListener('click', togglePause);
+
+    // Global keydown listener to handle Enter key for start/restart and pause
     document.addEventListener('keydown', function(event) {
         // Only allow Enter to start/restart when on the start or game over screen
         if (event.key === 'Enter') {
@@ -205,6 +209,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 startGame();
             } else if (gameState === 'gameOver') {
                 startGame();
+            }
+            // Also allow Enter to resume when paused
+            else if (gameState === 'playing' && isGamePaused) {
+                togglePause();
             }
         }
 

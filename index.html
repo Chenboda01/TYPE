@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <video autoplay muted loop id="bg-video">
+        <source src="assets/space_background.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
     <div id="game-container">
         <!-- User Authentication Screen -->
         <div id="auth-screen" class="screen active">
@@ -60,46 +64,57 @@
         <!-- Game Screen -->
         <div id="game-screen" class="screen">
             <div id="ui-panel">
-                <div id="score">Score: <span id="score-value">0</span></div>
-                <div id="level">Level: <span id="level-value">1</span></div>
-                <div id="wpm">WPM: <span id="wpm-value">0</span></div>
-                <div id="accuracy">Accuracy: <span id="accuracy-value">0%</span></div>
-                <div id="lives">Lives:
-                    <div id="lives-container" class="lives-container">
-                        <!-- Life icons will be dynamically added here -->
-                    </div>
-                </div>
-                <div id="music-controls">
-                    <button id="music-toggle" title="Toggle Music">🎵</button>
-                    <div id="volume-control">
-                        <input type="range" id="volume-slider" min="0" max="100" value="50" title="Volume Control">
-                    </div>
-                </div>
-                <div id="game-controls">
-                    <button id="pause-button" title="Pause/Resume Game">⏸️</button>
+                <div class="game-stats">
+                    <div id="score">Score: <span id="score-value">0</span></div>
+                    <div id="level">Level: <span id="level-value">1</span></div>
+                    <div id="wpm">WPM: <span id="wpm-value">0</span></div>
+                    <div id="accuracy">Accuracy: <span id="accuracy-value">0%</span></div>
                 </div>
 
-                <div id="powerup-indicators">
-                    <div id="shield-indicator" class="powerup-indicator">
-                        <span>🛡️</span>
-                        <span id="shield-count-display">0</span>
-                    </div>
-                    <div id="double-damage-indicator" class="powerup-indicator">
-                        <span>⚔️</span>
-                        <span id="double-damage-count-display">0</span>
-                    </div>
-                    <div id="slow-motion-indicator" class="powerup-indicator">
-                        <span>⏱️</span>
-                        <span id="slow-motion-count-display">0</span>
+                <div class="lives-section">
+                    <div id="lives">Lives:
+                        <div id="lives-container" class="lives-container">
+                            <!-- Life icons will be dynamically added here -->
+                        </div>
                     </div>
                 </div>
 
-                <div id="shop-container">
-                    <button id="shop-button" title="Power-up Shop">🛒</button>
+                <div class="controls-section">
+                    <div id="music-controls">
+                        <button id="music-toggle" title="Toggle Music">🎵</button>
+                        <div id="volume-control">
+                            <input type="range" id="volume-slider" min="0" max="100" value="50" title="Volume Control">
+                        </div>
+                    </div>
+                    <div id="game-controls">
+                        <button id="pause-button" title="Pause/Resume Game">⏸️</button>
+                    </div>
+                    <div id="shop-container">
+                        <button id="shop-button" title="Power-up Shop">🛒</button>
+                    </div>
+                </div>
+
+                <div class="powerup-section">
+                    <div id="powerup-indicators">
+                        <div id="shield-indicator" class="powerup-indicator">
+                            <span>🛡️</span>
+                            <span id="shield-count-display">0</span>
+                        </div>
+                        <div id="double-damage-indicator" class="powerup-indicator">
+                            <span>⚔️</span>
+                            <span id="double-damage-count-display">0</span>
+                        </div>
+                        <div id="slow-motion-indicator" class="powerup-indicator">
+                            <span>⏱️</span>
+                            <span id="slow-motion-count-display">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="pause-overlay" class="pause-overlay">
                 <div class="pause-message">PAUSED</div>
+                <div class="pause-instructions">Use ENTER key or press P on your keyboard to resume.</div>
+                <button id="resume-button" class="resume-button">RESUME</button>
             </div>
 
             <div id="game-area">
