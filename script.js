@@ -5,6 +5,7 @@ let level = 1;
 let wpm = 0;
 let accuracy = 100;
 let lives = 3; // Number of lives for the player
+let difficulty = 'medium'; // Current difficulty level ('easy', 'medium', 'hard')
 let asteroids = [];
 let bullets = [];
 let powerups = [];
@@ -424,6 +425,10 @@ function startGame() {
         return;
     }
 
+    // Get selected difficulty
+    const difficultySelect = document.getElementById('difficulty');
+    difficulty = difficultySelect ? difficultySelect.value : 'medium';
+
     // Reset game state for a new game
     gameState = 'playing';
     isGamePaused = false; // Reset pause state
@@ -548,9 +553,38 @@ function handleInput(e) {
             // Clear input
             wordInput.value = '';
 
-            // If no hit, add penalty or continue
+            // If no hit, add penalty based on difficulty
             if (!hit) {
-                // Maybe add a miss penalty or feedback here
+                // Determine penalty based on difficulty
+                let penalty = 0;
+
+                switch(difficulty) {
+                    case 'easy':
+                        // On easy, no life penalty for incorrect typing, just reduce score
+                        score = Math.max(0, score - 5); // Small score penalty
+                        break;
+                    case 'medium':
+                        // On medium, lose a life for incorrect typing
+                        penalty = 1;
+                        break;
+                    case 'hard':
+                        // On hard, lose more lives for incorrect typing
+                        penalty = 2;
+                        break;
+                    default:
+                        penalty = 1; // Default to medium
+                }
+
+                if (penalty > 0) {
+                    lives = Math.max(0, lives - penalty);
+                    updateLivesDisplay();
+
+                    // Check if game over due to no lives remaining
+                    if (lives <= 0) {
+                        endGame();
+                        return;  // Exit early to avoid further processing if game over
+                    }
+                }
             }
         }
     }
