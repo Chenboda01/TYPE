@@ -342,9 +342,12 @@ body {
 
 /* Shop button styling */
 #shop-container {
+    position: absolute;
+    bottom: 70px;  /* Adjust to position it above the typing area */
+    left: 20px;
+    z-index: 20;
     display: flex;
     align-items: center;
-    margin-left: 20px;
 }
 
 #shop-button {
