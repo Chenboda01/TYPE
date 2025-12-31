@@ -6,6 +6,7 @@ let wpm = 0;
 let accuracy = 100;
 let lives = 3; // Number of lives for the player
 let difficulty = 'medium'; // Current difficulty level ('easy', 'medium', 'hard')
+let consecutiveMistakes = 0; // Track consecutive typing mistakes
 let asteroids = [];
 let bullets = [];
 let powerups = [];
@@ -437,6 +438,7 @@ function startGame() {
     wpm = 0;
     accuracy = 100;
     lives = 3; // Reset lives to initial value
+    consecutiveMistakes = 0; // Reset consecutive mistakes counter
     asteroids = [];
     bullets = [];
     powerups = [];
@@ -553,30 +555,52 @@ function handleInput(e) {
             // Clear input
             wordInput.value = '';
 
-            // If no hit, add penalty based on difficulty
+            // If no hit, track the mistake and apply penalties based on difficulty
             if (!hit) {
-                // Determine penalty based on difficulty
-                let penalty = 0;
+                // Increment consecutive mistakes counter
+                consecutiveMistakes++;
+
+                // Add visual feedback for the mistake
+                wordInput.style.backgroundColor = '#ffcccc'; // Light red background
+                setTimeout(() => {
+                    wordInput.style.backgroundColor = ''; // Reset background
+                }, 300); // Reset after 300ms
+
+                // Small score penalty for incorrect typing
+                score = Math.max(0, score - 2);
+
+                // Apply life penalty based on consecutive mistakes and difficulty
+                let shouldLoseLife = false;
 
                 switch(difficulty) {
                     case 'easy':
-                        // On easy, no life penalty for incorrect typing, just reduce score
-                        score = Math.max(0, score - 5); // Small score penalty
+                        // On easy, only lose life after 3 consecutive mistakes
+                        if (consecutiveMistakes >= 3) {
+                            shouldLoseLife = true;
+                            consecutiveMistakes = 0; // Reset counter after penalty
+                        }
                         break;
                     case 'medium':
-                        // On medium, lose a life for incorrect typing
-                        penalty = 1;
+                        // On medium, lose life after 2 consecutive mistakes
+                        if (consecutiveMistakes >= 2) {
+                            shouldLoseLife = true;
+                            consecutiveMistakes = 0; // Reset counter after penalty
+                        }
                         break;
                     case 'hard':
-                        // On hard, lose more lives for incorrect typing
-                        penalty = 2;
+                        // On hard, lose life for every mistake
+                        shouldLoseLife = true;
                         break;
                     default:
-                        penalty = 1; // Default to medium
+                        // Default to medium difficulty behavior
+                        if (consecutiveMistakes >= 2) {
+                            shouldLoseLife = true;
+                            consecutiveMistakes = 0; // Reset counter after penalty
+                        }
                 }
 
-                if (penalty > 0) {
-                    lives = Math.max(0, lives - penalty);
+                if (shouldLoseLife) {
+                    lives = Math.max(0, lives - 1);
                     updateLivesDisplay();
 
                     // Check if game over due to no lives remaining
@@ -585,6 +609,9 @@ function handleInput(e) {
                         return;  // Exit early to avoid further processing if game over
                     }
                 }
+            } else {
+                // If the player made a correct input, reset the consecutive mistake counter
+                consecutiveMistakes = 0;
             }
         }
     }
