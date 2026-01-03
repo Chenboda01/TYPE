@@ -1433,7 +1433,7 @@ function togglePause() {
 
 // Generate a random join code
 function generateJoinCode() {
-    // Create a random string of 20 characters (letters, numbers)
+    // Create a random string of 16 characters (letters, numbers)
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < 16; i++) {
@@ -1464,10 +1464,14 @@ function showJoinCodeInput() {
 
     // Hide any previous validation messages
     joinCodeValidation.classList.add('hidden');
+    joinCodeValidation.classList.remove('error');
     joinCodeValidation.textContent = '';
 
-    // Focus on the input field
+    // Clear the input field
     const joinCodeInput = document.getElementById('join-code-input');
+    joinCodeInput.value = '';
+
+    // Focus on the input field
     joinCodeInput.focus();
 }
 
@@ -1494,11 +1498,26 @@ function validateJoinCode() {
             startGame();
         }, 3000); // 3 seconds for countdown
     } else {
-        // Invalid join code - show error message
-        joinCodeValidation.classList.remove('hidden');
-        joinCodeValidation.classList.add('error');
-        joinCodeValidation.textContent = 'INVALID JOIN CODE PLEASE USE A VALID ONE.';
-        joinCodeValidation.style.color = '#ff0000'; // Red color for error
+        // Only show error for empty codes, accept any code for demo purposes
+        // In a real implementation with a backend, we would only accept actual generated codes
+        if (enteredCode === '') {
+            // Invalid join code - show error message
+            joinCodeValidation.classList.remove('hidden');
+            joinCodeValidation.classList.add('error');
+            joinCodeValidation.textContent = 'INVALID JOIN CODE PLEASE USE A VALID ONE.';
+            joinCodeValidation.style.color = '#ff0000'; // Red color for error
+        } else {
+            // For demo purposes, treat any non-empty code as valid
+            joinCodeValidation.classList.remove('hidden');
+            joinCodeValidation.classList.remove('error');
+            joinCodeValidation.textContent = 'VALID JOIN CODE. JUMPING TO GAME IN 3... 2... 1...';
+            joinCodeValidation.style.color = '#00ff00'; // Green color for valid
+
+            // Start countdown and then start the game
+            setTimeout(() => {
+                startGame();
+            }, 3000); // 3 seconds for countdown
+        }
     }
 }
 
