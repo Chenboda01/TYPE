@@ -1536,7 +1536,6 @@ function showHostScreen() {
 
     // Set a maximum time limit (e.g., 10 seconds) to prevent infinite loading
     const maxTimeLimit = 10000; // 10 seconds
-    const startTime = Date.now();
 
     // Function to force completion after time limit
     const timeLimitTimer = setTimeout(() => {
@@ -1643,7 +1642,17 @@ function showHostScreen() {
     // Clear the time limit timer since we completed normally
     clearTimeout(timeLimitTimer);
 
-    // Hide loading indicator after a short delay to allow user to see completion
+    // Ensure the host screen is visible before hiding the loading indicator
+    // Make sure the host screen is properly activated
+    if (hostScreen && !hostScreen.classList.contains('active')) {
+        hostScreen.classList.add('active');
+    }
+
+    // Ensure the start screen is deactivated
+    if (startScreen && startScreen.classList.contains('active')) {
+        startScreen.classList.remove('active');
+    }
+
     setTimeout(() => {
         if (loadingIndicator) {
             loadingIndicator.classList.add('hidden');
@@ -1659,7 +1668,7 @@ function showHostScreen() {
                 progressText.textContent = '0%';
             }
         }
-    }, 500); // Wait 500ms to show completion before hiding
+    }, 1000); // Wait 1000ms to ensure host screen is visible before hiding loading indicator
 }
 
 // Add a player to the players list on the host screen
