@@ -543,7 +543,7 @@ function updatePowerupIndicators() {
 // Start the game
 function startGame() {
     // If user is not logged in and not in hosting mode, show auth screen instead
-    if (!currentUser && gameState !== 'hosting') {
+    if (!currentUser && gameState !== 'hosting' && gameState !== 'help') {
         document.getElementById('start-screen').classList.remove('active');
         document.getElementById('auth-screen').classList.add('active');
         gameState = 'start';
@@ -564,6 +564,11 @@ function startGame() {
     // If in hosting mode, switch from host screen to game screen
     if (gameState === 'hosting') {
         hostScreen.classList.remove('active');
+    }
+
+    // If in help mode, switch from help screen to game screen
+    if (gameState === 'help') {
+        helpCenterScreen.classList.remove('active');
     }
 
     // Get selected difficulty
@@ -600,6 +605,7 @@ function startGame() {
 
     // Switch screens
     if (hostScreen) hostScreen.classList.remove('active');
+    if (helpCenterScreen) helpCenterScreen.classList.remove('active');
     startScreen.classList.remove('active');
     gameScreen.classList.add('active');
     gameOverScreen.classList.remove('active');
