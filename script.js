@@ -1535,12 +1535,33 @@ function showHostScreen() {
     // Add the host to the players list
     addPlayerToList(currentUser ? currentUser.username : 'HOST');
 
-    // Auto-detect functionality: Continuously monitor the loading state
+    // Switch to host screen immediately (before starting the monitoring interval)
+    if (startScreen) startScreen.classList.remove('active');
+    if (hostScreen) {
+        hostScreen.classList.add('active');
+        console.log("Host screen activated"); // Debug log
+    } else {
+        console.error("hostScreen element not found"); // Debug log
+
+        // Hide loading indicator if host screen is not found
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+        }
+
+        return; // Exit early if host screen doesn't exist
+    }
+
+    // Set game state to hosting
+    gameState = 'hosting';
+    console.log("Game state set to hosting"); // Debug log
+
+    // Auto-detect functionality: Monitor for any issues after screen activation
+    // This interval is mainly for error detection and cleanup
     let detectionInterval;
     const startTime = Date.now();
-    const maxWaitTime = 5000; // 5 seconds maximum wait time
+    const maxWaitTime = 3000; // Reduced maximum wait time to 3 seconds
 
-    // Start monitoring the loading state
+    // Start monitoring for any potential issues
     detectionInterval = setInterval(() => {
         const elapsedTime = Date.now() - startTime;
 
@@ -1550,27 +1571,23 @@ function showHostScreen() {
             loadingMessage.textContent = `Preparing host session... ${Math.floor(elapsedTime / 1000)}s`;
         }
 
-        // Check if the host screen has loaded successfully
-        if (hostScreen && hostScreen.classList.contains('active')) {
-            console.log("Host screen loaded successfully after", elapsedTime, "ms");
-
-            // Clear the monitoring interval
+        // Since the screen is already active, we can hide the loading indicator after a short delay
+        if (elapsedTime > 500) { // Wait 500ms before hiding
             clearInterval(detectionInterval);
 
-            // Hide loading indicator after a short delay to ensure smooth transition
-            setTimeout(() => {
-                if (loadingIndicator) {
-                    loadingIndicator.classList.add('hidden');
-                    // Reset the message text
-                    if (loadingMessage) {
-                        loadingMessage.textContent = "Preparing host session...";
-                    }
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.classList.add('hidden');
+                // Reset the message text
+                const messageElement = loadingIndicator.querySelector('p');
+                if (messageElement) {
+                    messageElement.textContent = "Preparing host session...";
                 }
-            }, 500);
+            }
         }
         // Check if maximum wait time has been exceeded
         else if (elapsedTime > maxWaitTime) {
-            console.error("Host screen failed to load within maximum wait time");
+            console.error("Host screen loading took longer than expected");
 
             // Clear the monitoring interval
             clearInterval(detectionInterval);
@@ -1586,36 +1603,9 @@ function showHostScreen() {
             }
 
             // Show error message to user
-            alert("Failed to load host screen. Please try again.");
+            alert("Host session preparation took longer than expected. Please try again.");
         }
     }, 100); // Check every 100ms for more responsive monitoring
-
-    // Switch to host screen
-    if (startScreen) startScreen.classList.remove('active');
-    if (hostScreen) {
-        // Add a small delay to ensure DOM updates before showing the screen
-        setTimeout(() => {
-            hostScreen.classList.add('active');
-            console.log("Host screen activated"); // Debug log
-
-            // The interval will automatically clear when the screen loads
-        }, 100);
-    } else {
-        console.error("hostScreen element not found"); // Debug log
-
-        // Hide loading indicator if host screen is not found
-        if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
-        }
-
-        // Clear the monitoring interval if host screen element doesn't exist
-        if (detectionInterval) {
-            clearInterval(detectionInterval);
-        }
-    }
-
-    gameState = 'hosting';
-    console.log("Game state set to hosting"); // Debug log
 }
 
 // Add a player to the players list on the host screen
