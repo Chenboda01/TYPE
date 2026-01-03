@@ -11,6 +11,8 @@ let asteroids = [];
 let bullets = [];
 let powerups = [];
 let startTime;
+let pausedTime = 0; // Total time the game has been paused
+let lastPauseTime = 0; // Time when the game was last paused
 let totalTyped = 0;
 let correctTyped = 0;
 let gameInterval;
@@ -513,6 +515,8 @@ function startGame() {
     totalTyped = 0;
     correctTyped = 0;
     startTime = new Date();
+    pausedTime = 0; // Reset paused time
+    lastPauseTime = 0; // Reset last pause time
 
     // Reset active powerups
     activePowerups.shield = { active: false, endTime: null };
@@ -615,8 +619,9 @@ function handleInput(e) {
             accuracy = Math.round((correctTyped / totalTyped) * 100) || 100;
 
             // Calculate WPM (words per minute)
-            const timeElapsed = (new Date() - startTime) / 60000; // in minutes
-            wpm = Math.round((correctTyped / 5) / timeElapsed) || 0;
+            // Account for time when the game was paused
+            const actualGameTime = (new Date() - startTime - pausedTime) / 60000; // in minutes
+            wpm = Math.round((correctTyped / 5) / actualGameTime) || 0;
 
             // Update UI
             updateUI();
@@ -997,6 +1002,10 @@ function endGame() {
     if (powerupSpawnInterval) {
         clearInterval(powerupSpawnInterval);
     }
+
+    // Reset pause tracking variables
+    pausedTime = 0;
+    lastPauseTime = 0;
 
     // Update game over screen
     finalScore.textContent = score;
@@ -1435,6 +1444,12 @@ function togglePause() {
         if (spawnInterval) {
             clearInterval(spawnInterval);
         }
+        if (powerupSpawnInterval) {
+            clearInterval(powerupSpawnInterval);
+        }
+
+        // Track when the game was paused
+        lastPauseTime = Date.now();
 
         // Update button text
         pauseButton.textContent = '▶️'; // Play symbol
@@ -1448,6 +1463,12 @@ function togglePause() {
             backgroundMusic.pause();
         }
     } else {
+        // Calculate how long the game was paused
+        if (lastPauseTime > 0) {
+            pausedTime += Date.now() - lastPauseTime;
+            lastPauseTime = 0; // Reset the pause start time
+        }
+
         // Resume the game
         gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
 
@@ -1456,6 +1477,14 @@ function togglePause() {
             clearInterval(spawnInterval);
         }
         spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+        // Restart powerup spawning if needed (only if level >= 3)
+        if (level >= 3) {
+            if (powerupSpawnInterval) {
+                clearInterval(powerupSpawnInterval);
+            }
+            powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
+        }
 
         // Update button text
         pauseButton.textContent = '⏸️'; // Pause symbol
