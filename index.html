@@ -203,6 +203,44 @@
             </div>
         </div>
 
+        <!-- Host Screen -->
+        <div id="host-screen" class="screen">
+            <div class="host-header">
+                <h2>HOST DASHBOARD</h2>
+                <button id="end-game-button" class="end-game-btn">END GAME</button>
+            </div>
+
+            <div class="host-content">
+                <div class="join-code-display">
+                    <h3>GAME JOIN CODE</h3>
+                    <p id="current-join-code">Generating...</p>
+                    <p class="instructions">Share this code with players who want to join</p>
+                </div>
+
+                <div class="players-section">
+                    <h3>CONNECTED PLAYERS</h3>
+                    <div id="players-list">
+                        <!-- Player names will be added here dynamically -->
+                        <div class="player-item">
+                            <span class="player-name">HOST</span>
+                            <span class="player-status">Ready</span>
+                        </div>
+                    </div>
+
+                    <!-- For demo purposes, add a button to simulate player joining -->
+                    <div class="add-player-section">
+                        <h4>ADD SIMULATED PLAYER (For Demo)</h4>
+                        <input type="text" id="player-name-input" placeholder="Enter player name">
+                        <button id="add-player-button">ADD PLAYER</button>
+                    </div>
+                </div>
+
+                <div class="host-controls">
+                    <button id="start-game-button">START GAME</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Store Screen -->
         <div id="store-screen" class="screen">
             <h2>Power-up Store</h2>

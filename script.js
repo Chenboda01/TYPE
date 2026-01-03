@@ -75,6 +75,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const joinCodeSubmit = document.getElementById('join-code-submit');
     const joinCodeValidation = document.getElementById('join-code-validation');
 
+    // Host screen elements
+    const hostScreen = document.getElementById('host-screen');
+    const currentJoinCodeDisplay = document.getElementById('current-join-code');
+    const playersList = document.getElementById('players-list');
+    const startGameButton = document.getElementById('start-game-button');
+    const endGameButton = document.getElementById('end-game-button');
+    const playerNameInput = document.getElementById('player-name-input');
+    const addPlayerButton = document.getElementById('add-player-button');
+
     // Initialize livesContainer after DOM has loaded
     livesContainer = document.getElementById('lives-container');
 
@@ -88,9 +97,34 @@ document.addEventListener('DOMContentLoaded', () => {
     wordInput.addEventListener('keydown', handleInput);
 
     // Multiplayer functionality
-    competeFriendsBtn.addEventListener('click', generateJoinCode);
+    competeFriendsBtn.addEventListener('click', showHostScreen);
     enterCodeBtn.addEventListener('click', showJoinCodeInput);
     joinCodeSubmit.addEventListener('click', validateJoinCode);
+
+    // Host screen functionality
+    startGameButton.addEventListener('click', startGame);
+    endGameButton.addEventListener('click', () => {
+        // Return to start screen when ending the game
+        hostScreen.classList.remove('active');
+        startScreen.classList.add('active');
+        gameState = 'start';
+    });
+
+    // Add player button functionality (for demo purposes)
+    addPlayerButton.addEventListener('click', () => {
+        const playerName = playerNameInput.value.trim();
+        if (playerName) {
+            addPlayerToList(playerName);
+            playerNameInput.value = ''; // Clear the input
+        }
+    });
+
+    // Allow adding player by pressing Enter in the input field
+    playerNameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addPlayerButton.click();
+        }
+    });
 
     // Music controls
     musicToggle.addEventListener('click', toggleMusic);
@@ -436,8 +470,8 @@ function updatePowerupIndicators() {
 
 // Start the game
 function startGame() {
-    // If user is not logged in, show auth screen instead
-    if (!currentUser) {
+    // If user is not logged in and not in hosting mode, show auth screen instead
+    if (!currentUser && gameState !== 'hosting') {
         document.getElementById('start-screen').classList.remove('active');
         document.getElementById('auth-screen').classList.add('active');
         gameState = 'start';
@@ -453,6 +487,11 @@ function startGame() {
             togglePause();
         }
         return;
+    }
+
+    // If in hosting mode, switch from host screen to game screen
+    if (gameState === 'hosting') {
+        hostScreen.classList.remove('active');
     }
 
     // Get selected difficulty
@@ -486,6 +525,7 @@ function startGame() {
     updatePowerupCounts(); // Update power-up counts in UI
 
     // Switch screens
+    if (hostScreen) hostScreen.classList.remove('active');
     startScreen.classList.remove('active');
     gameScreen.classList.add('active');
     gameOverScreen.classList.remove('active');
@@ -1431,9 +1471,9 @@ function togglePause() {
     }
 }
 
-// Generate a random join code
-function generateJoinCode() {
-    // Create a random string of 16 characters (letters, numbers)
+// Show the host screen with generated join code
+function showHostScreen() {
+    // Generate a new join code
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < 16; i++) {
@@ -1447,11 +1487,34 @@ function generateJoinCode() {
     // Add to active codes
     activeJoinCodes.push(currentJoinCode);
 
-    // Show the code to the user (in a real implementation, you'd show it in a modal or notification)
-    alert(`Your join code is: ${currentJoinCode}\nShare this code with your friends to compete!`);
+    // Update the join code display on the host screen
+    currentJoinCodeDisplay.textContent = currentJoinCode;
 
-    // Start the game immediately after generating the code
-    startGame();
+    // Add the host to the players list
+    addPlayerToList(currentUser ? currentUser.username : 'HOST');
+
+    // Switch to host screen
+    startScreen.classList.remove('active');
+    hostScreen.classList.add('active');
+    gameState = 'hosting';
+}
+
+// Add a player to the players list on the host screen
+function addPlayerToList(username) {
+    const playerItem = document.createElement('div');
+    playerItem.className = 'player-item';
+
+    const playerName = document.createElement('span');
+    playerName.className = 'player-name';
+    playerName.textContent = username;
+
+    const playerStatus = document.createElement('span');
+    playerStatus.className = 'player-status';
+    playerStatus.textContent = 'Connected';
+
+    playerItem.appendChild(playerName);
+    playerItem.appendChild(playerStatus);
+    playersList.appendChild(playerItem);
 }
 
 // Show the join code input section
@@ -1487,7 +1550,8 @@ function validateJoinCode() {
 
     // Step 3: Report to user if valid or invalid
     if (isValid) {
-        // Valid join code - show countdown and start game
+        // Valid join code - add player to host's player list (if we could access it)
+        // For demo purposes, we'll just start the game
         joinCodeValidation.classList.remove('hidden');
         joinCodeValidation.classList.remove('error');
         joinCodeValidation.textContent = 'VALID JOIN CODE. JUMPING TO GAME IN 3... 2... 1...';
@@ -1498,8 +1562,7 @@ function validateJoinCode() {
             startGame();
         }, 3000); // 3 seconds for countdown
     } else {
-        // Only show error for empty codes, accept any code for demo purposes
-        // In a real implementation with a backend, we would only accept actual generated codes
+        // Only show error for empty codes
         if (enteredCode === '') {
             // Invalid join code - show error message
             joinCodeValidation.classList.remove('hidden');
@@ -1507,16 +1570,11 @@ function validateJoinCode() {
             joinCodeValidation.textContent = 'INVALID JOIN CODE PLEASE USE A VALID ONE.';
             joinCodeValidation.style.color = '#ff0000'; // Red color for error
         } else {
-            // For demo purposes, treat any non-empty code as valid
+            // Invalid join code - show error message
             joinCodeValidation.classList.remove('hidden');
-            joinCodeValidation.classList.remove('error');
-            joinCodeValidation.textContent = 'VALID JOIN CODE. JUMPING TO GAME IN 3... 2... 1...';
-            joinCodeValidation.style.color = '#00ff00'; // Green color for valid
-
-            // Start countdown and then start the game
-            setTimeout(() => {
-                startGame();
-            }, 3000); // 3 seconds for countdown
+            joinCodeValidation.classList.add('error');
+            joinCodeValidation.textContent = 'INVALID JOIN CODE PLEASE USE A VALID ONE.';
+            joinCodeValidation.style.color = '#ff0000'; // Red color for error
         }
     }
 }
