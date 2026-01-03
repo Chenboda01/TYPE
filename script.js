@@ -1,5 +1,5 @@
 // Game variables
-let gameState = 'start'; // 'start', 'playing', 'gameOver'
+let gameState = 'start'; // 'start', 'playing', 'gameOver', 'help', 'hosting'
 let score = 0;
 let level = 1;
 let wpm = 0;
@@ -86,6 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerNameInput = document.getElementById('player-name-input');
     const addPlayerButton = document.getElementById('add-player-button');
 
+    // Help Center elements
+    const helpCenterButton = document.getElementById('help-center-button');
+    const helpCenterScreen = document.getElementById('help-center-screen');
+    const helpCenterBackButton = document.getElementById('help-center-back-button');
+    const reportForm = document.getElementById('report-form');
+    const reportType = document.getElementById('report-type');
+    const reportDescription = document.getElementById('report-description');
+    const reportEmail = document.getElementById('report-email');
+    const adminPassword = document.getElementById('admin-password');
+    const adminLoginBtn = document.getElementById('admin-login-btn');
+    const adminPanel = document.getElementById('admin-panel');
+    const reportsList = document.getElementById('reports-list');
+
     // Initialize livesContainer after DOM has loaded
     livesContainer = document.getElementById('lives-container');
 
@@ -127,6 +140,63 @@ document.addEventListener('DOMContentLoaded', () => {
             addPlayerButton.click();
         }
     });
+
+    // Help Center functionality
+    helpCenterButton.addEventListener('click', () => {
+        startScreen.classList.remove('active');
+        helpCenterScreen.classList.add('active');
+        gameState = 'help';
+    });
+
+    helpCenterBackButton.addEventListener('click', () => {
+        helpCenterScreen.classList.remove('active');
+        startScreen.classList.add('active');
+        gameState = 'start';
+    });
+
+    // Report form submission
+    reportForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const type = reportType.value;
+        const description = reportDescription.value.trim();
+        const email = reportEmail.value.trim();
+
+        if (!type || !description) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
+        // Create a new report object
+        const report = {
+            id: Date.now(), // Use timestamp as unique ID
+            type: type,
+            description: description,
+            email: email || 'Not provided',
+            timestamp: new Date().toISOString()
+        };
+
+        // Save the report to localStorage
+        saveReport(report);
+
+        // Show confirmation and reset form
+        alert('Your report has been submitted successfully!');
+        reportForm.reset();
+    });
+
+    // Admin login
+    adminLoginBtn.addEventListener('click', () => {
+        const password = adminPassword.value;
+        if (password === '771122') {
+            adminPanel.classList.remove('hidden');
+            adminPassword.value = ''; // Clear password field
+        } else {
+            alert('Incorrect password. Access denied.');
+        }
+    });
+
+    // Load existing reports when admin panel is shown
+    adminLoginBtn.addEventListener('click', loadReports);
 
     // Music controls
     musicToggle.addEventListener('click', toggleMusic);
@@ -1659,6 +1729,77 @@ function addPlayerToList(username) {
     playerItem.appendChild(playerName);
     playerItem.appendChild(playerStatus);
     playersList.appendChild(playerItem);
+}
+
+// Save a report to localStorage
+function saveReport(report) {
+    // Get existing reports or initialize an empty array
+    const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+
+    // Add the new report
+    reports.push(report);
+
+    // Save back to localStorage
+    localStorage.setItem('reports', JSON.stringify(reports));
+}
+
+// Load reports from localStorage and display them
+function loadReports() {
+    // Get reports from localStorage
+    const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+
+    // Clear the reports list
+    reportsList.innerHTML = '';
+
+    // If no reports, show a message
+    if (reports.length === 0) {
+        reportsList.innerHTML = '<p>No reports yet.</p>';
+        return;
+    }
+
+    // Add each report to the list
+    reports.forEach(report => {
+        const reportElement = document.createElement('div');
+        reportElement.className = 'report-item';
+
+        // Format the date for display
+        const date = new Date(report.timestamp);
+        const formattedDate = date.toLocaleString();
+
+        reportElement.innerHTML = `
+            <div class="report-item-header">
+                <span>${report.type.toUpperCase()} - ${formattedDate}</span>
+                <button class="delete-report-btn" data-id="${report.id}">DELETE</button>
+            </div>
+            <div class="report-item-content">${report.description}</div>
+            <div class="report-item-email">Email: ${report.email}</div>
+        `;
+
+        reportsList.appendChild(reportElement);
+    });
+
+    // Add event listeners to delete buttons
+    document.querySelectorAll('.delete-report-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const reportId = parseInt(this.getAttribute('data-id'));
+            deleteReport(reportId);
+        });
+    });
+}
+
+// Delete a report by ID
+function deleteReport(reportId) {
+    // Get existing reports
+    let reports = JSON.parse(localStorage.getItem('reports') || '[]');
+
+    // Filter out the report with the specified ID
+    reports = reports.filter(report => report.id !== reportId);
+
+    // Save back to localStorage
+    localStorage.setItem('reports', JSON.stringify(reports));
+
+    // Reload the reports list
+    loadReports();
 }
 
 // Show the join code input section

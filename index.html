@@ -49,6 +49,7 @@
             <button id="start-button">START MISSION</button>
             <button id="compete-friends-button">COMPETE WITH FRIENDS!</button>
             <button id="enter-code-button">ENTER JOIN CODE FOR GAME SIMULATION</button>
+            <button id="help-center-button">HELP CENTER</button>
             <div id="difficulty-selection">
                 <label for="difficulty">Difficulty:</label>
                 <select id="difficulty">
@@ -237,6 +238,59 @@
 
                 <div class="host-controls">
                     <button id="start-game-button">START GAME</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Center Screen -->
+        <div id="help-center-screen" class="screen">
+            <div class="help-center-header">
+                <h2>HELP CENTER</h2>
+                <button id="help-center-back-button" class="back-btn">BACK</button>
+            </div>
+
+            <div class="help-center-content">
+                <div class="report-section">
+                    <h3>REPORT AN ISSUE</h3>
+                    <form id="report-form">
+                        <div class="form-group">
+                            <label for="report-type">Issue Type:</label>
+                            <select id="report-type" required>
+                                <option value="">Select an issue type</option>
+                                <option value="bug">Bug Report</option>
+                                <option value="feedback">Feedback</option>
+                                <option value="technical">Technical Issue</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="report-description">Description:</label>
+                            <textarea id="report-description" placeholder="Describe your issue..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="report-email">Email (optional):</label>
+                            <input type="email" id="report-email" placeholder="your.email@example.com">
+                        </div>
+
+                        <button type="submit">SUBMIT REPORT</button>
+                    </form>
+                </div>
+
+                <div class="admin-section">
+                    <h3>ADMIN ACCESS</h3>
+                    <div id="admin-login">
+                        <input type="password" id="admin-password" placeholder="Enter admin password">
+                        <button id="admin-login-btn">LOGIN</button>
+                    </div>
+
+                    <div id="admin-panel" class="hidden">
+                        <h4>REPORTS DASHBOARD</h4>
+                        <div id="reports-list">
+                            <!-- Reports will be listed here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

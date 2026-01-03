@@ -501,6 +501,207 @@ body {
     box-shadow: 0 0 15px #00ff00;
 }
 
+/* Help Center Screen Styles */
+#help-center-screen {
+    background-color: rgba(0, 30, 0, 0.9);
+    padding: 20px;
+    text-align: center;
+}
+
+.help-center-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 20px;
+}
+
+.help-center-header h2 {
+    color: #00ff00;
+    margin: 0;
+}
+
+.back-btn {
+    background-color: #003300;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 8px 15px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.back-btn:hover {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.help-center-content {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.report-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: rgba(0, 20, 0, 0.8);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+}
+
+.report-section h3 {
+    color: #00ff00;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    color: #00ff00;
+    margin-bottom: 5px;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    background-color: #000;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    font-family: 'Courier New', Courier, monospace;
+    border-radius: 3px;
+}
+
+.form-group textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+#report-form button {
+    background-color: #003300;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 10px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+#report-form button:hover {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.admin-section {
+    padding: 20px;
+    background-color: rgba(30, 0, 0, 0.8);
+    border: 1px solid #ff0000;
+    border-radius: 5px;
+}
+
+.admin-section h3 {
+    color: #ff0000;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#admin-login {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#admin-password {
+    flex: 1;
+    padding: 8px;
+    background-color: #000;
+    border: 1px solid #ff0000;
+    color: #ff0000;
+    font-family: 'Courier New', Courier, monospace;
+    border-radius: 3px;
+}
+
+#admin-login-btn {
+    background-color: #330000;
+    color: #ff0000;
+    border: 1px solid #ff0000;
+    padding: 8px 15px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+#admin-login-btn:hover {
+    background-color: #ff0000;
+    color: #000;
+    box-shadow: 0 0 10px #ff0000;
+}
+
+#admin-panel {
+    margin-top: 20px;
+}
+
+#admin-panel h4 {
+    color: #ff0000;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.report-item {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid #ff6600;
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.report-item-header {
+    display: flex;
+    justify-content: space-between;
+    color: #ff6600;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.report-item-content {
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.report-item-email {
+    color: #0088ff;
+    font-size: 0.9em;
+}
+
+.delete-report-btn {
+    background-color: #330000;
+    color: #ff0000;
+    border: 1px solid #ff0000;
+    padding: 3px 8px;
+    font-size: 0.8em;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-top: 5px;
+}
+
+.delete-report-btn:hover {
+    background-color: #ff0000;
+    color: #000;
+}
+
 /* Loading indicator styles */
 .loading-indicator {
     position: fixed;
