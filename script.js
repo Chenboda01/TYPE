@@ -1473,6 +1473,14 @@ function togglePause() {
 
 // Show the host screen with generated join code
 function showHostScreen() {
+    console.log("showHostScreen function called"); // Debug log
+
+    // Show loading indicator
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.classList.remove('hidden');
+    }
+
     // Generate a new join code
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
@@ -1488,15 +1496,97 @@ function showHostScreen() {
     activeJoinCodes.push(currentJoinCode);
 
     // Update the join code display on the host screen
-    currentJoinCodeDisplay.textContent = currentJoinCode;
+    if (currentJoinCodeDisplay) {
+        currentJoinCodeDisplay.textContent = currentJoinCode;
+        console.log("Join code displayed:", currentJoinCode); // Debug log
+    } else {
+        console.error("currentJoinCodeDisplay element not found"); // Debug log
+    }
 
     // Add the host to the players list
     addPlayerToList(currentUser ? currentUser.username : 'HOST');
 
+    // Auto-detect functionality: Continuously monitor the loading state
+    let detectionInterval;
+    const startTime = Date.now();
+    const maxWaitTime = 5000; // 5 seconds maximum wait time
+
+    // Start monitoring the loading state
+    detectionInterval = setInterval(() => {
+        const elapsedTime = Date.now() - startTime;
+
+        // Update loading message to show elapsed time (for visual feedback)
+        const loadingMessage = loadingIndicator.querySelector('p');
+        if (loadingMessage) {
+            loadingMessage.textContent = `Preparing host session... ${Math.floor(elapsedTime / 1000)}s`;
+        }
+
+        // Check if the host screen has loaded successfully
+        if (hostScreen && hostScreen.classList.contains('active')) {
+            console.log("Host screen loaded successfully after", elapsedTime, "ms");
+
+            // Clear the monitoring interval
+            clearInterval(detectionInterval);
+
+            // Hide loading indicator after a short delay to ensure smooth transition
+            setTimeout(() => {
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('hidden');
+                    // Reset the message text
+                    if (loadingMessage) {
+                        loadingMessage.textContent = "Preparing host session...";
+                    }
+                }
+            }, 500);
+        }
+        // Check if maximum wait time has been exceeded
+        else if (elapsedTime > maxWaitTime) {
+            console.error("Host screen failed to load within maximum wait time");
+
+            // Clear the monitoring interval
+            clearInterval(detectionInterval);
+
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.classList.add('hidden');
+                // Reset the message text
+                const loadingMessage = loadingIndicator.querySelector('p');
+                if (loadingMessage) {
+                    loadingMessage.textContent = "Preparing host session...";
+                }
+            }
+
+            // Show error message to user
+            alert("Failed to load host screen. Please try again.");
+        }
+    }, 100); // Check every 100ms for more responsive monitoring
+
     // Switch to host screen
-    startScreen.classList.remove('active');
-    hostScreen.classList.add('active');
+    if (startScreen) startScreen.classList.remove('active');
+    if (hostScreen) {
+        // Add a small delay to ensure DOM updates before showing the screen
+        setTimeout(() => {
+            hostScreen.classList.add('active');
+            console.log("Host screen activated"); // Debug log
+
+            // The interval will automatically clear when the screen loads
+        }, 100);
+    } else {
+        console.error("hostScreen element not found"); // Debug log
+
+        // Hide loading indicator if host screen is not found
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+        }
+
+        // Clear the monitoring interval if host screen element doesn't exist
+        if (detectionInterval) {
+            clearInterval(detectionInterval);
+        }
+    }
+
     gameState = 'hosting';
+    console.log("Game state set to hosting"); // Debug log
 }
 
 // Add a player to the players list on the host screen

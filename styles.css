@@ -501,6 +501,46 @@ body {
     box-shadow: 0 0 15px #00ff00;
 }
 
+/* Loading indicator styles */
+.loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    color: #00ff00;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.loading-indicator p {
+    margin-top: 20px;
+    font-size: 1.2rem;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 255, 0, 0.3);
+    border-top: 5px solid #00ff00;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none;
+}
+
 /* Power-up indicator in game */
 #powerup-indicators {
     display: flex;
