@@ -1510,6 +1510,19 @@ function showHostScreen() {
         loadingIndicator.classList.remove('hidden');
     }
 
+    // Initialize progress bar
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    let progress = 0;
+
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    }
+
+    if (progressText) {
+        progressText.textContent = '0%';
+    }
+
     // Generate a new join code
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
@@ -1520,6 +1533,15 @@ function showHostScreen() {
     // Add a random number to make it unique
     const randomNum = Math.floor(Math.random() * 1000000);
     currentJoinCode = result + '.' + randomNum;
+
+    // Update progress
+    progress = 20;
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
+    if (progressText) {
+        progressText.textContent = progress + '%';
+    }
 
     // Add to active codes
     activeJoinCodes.push(currentJoinCode);
@@ -1532,10 +1554,28 @@ function showHostScreen() {
         console.error("currentJoinCodeDisplay element not found"); // Debug log
     }
 
+    // Update progress
+    progress = 40;
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
+    if (progressText) {
+        progressText.textContent = progress + '%';
+    }
+
     // Add the host to the players list
     addPlayerToList(currentUser ? currentUser.username : 'HOST');
 
-    // Switch to host screen immediately (before starting the monitoring interval)
+    // Update progress
+    progress = 60;
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
+    if (progressText) {
+        progressText.textContent = progress + '%';
+    }
+
+    // Switch to host screen
     if (startScreen) startScreen.classList.remove('active');
     if (hostScreen) {
         hostScreen.classList.add('active');
@@ -1551,9 +1591,27 @@ function showHostScreen() {
         return; // Exit early if host screen doesn't exist
     }
 
+    // Update progress
+    progress = 80;
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
+    if (progressText) {
+        progressText.textContent = progress + '%';
+    }
+
     // Set game state to hosting
     gameState = 'hosting';
     console.log("Game state set to hosting"); // Debug log
+
+    // Update progress to 100%
+    progress = 100;
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
+    if (progressText) {
+        progressText.textContent = progress + '%';
+    }
 
     // Auto-detect functionality: Monitor for any issues after screen activation
     // This interval is mainly for error detection and cleanup
@@ -1571,19 +1629,27 @@ function showHostScreen() {
             loadingMessage.textContent = `Preparing host session... ${Math.floor(elapsedTime / 1000)}s`;
         }
 
-        // Since the screen is already active, we can hide the loading indicator after a short delay
-        if (elapsedTime > 500) { // Wait 500ms before hiding
+        // Since the screen is already active and progress is at 100%, hide the loading indicator after a short delay
+        if (progress >= 100) {
             clearInterval(detectionInterval);
 
-            // Hide loading indicator
-            if (loadingIndicator) {
-                loadingIndicator.classList.add('hidden');
-                // Reset the message text
-                const messageElement = loadingIndicator.querySelector('p');
-                if (messageElement) {
-                    messageElement.textContent = "Preparing host session...";
+            // Hide loading indicator after a short delay to allow user to see completion
+            setTimeout(() => {
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('hidden');
+                    // Reset the message text and progress
+                    const messageElement = loadingIndicator.querySelector('p');
+                    if (messageElement) {
+                        messageElement.textContent = "Preparing host session...";
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = '0%';
+                    }
+                    if (progressText) {
+                        progressText.textContent = '0%';
+                    }
                 }
-            }
+            }, 500); // Wait 500ms to show completion before hiding
         }
         // Check if maximum wait time has been exceeded
         else if (elapsedTime > maxWaitTime) {
@@ -1595,10 +1661,16 @@ function showHostScreen() {
             // Hide loading indicator
             if (loadingIndicator) {
                 loadingIndicator.classList.add('hidden');
-                // Reset the message text
+                // Reset the message text and progress
                 const loadingMessage = loadingIndicator.querySelector('p');
                 if (loadingMessage) {
                     loadingMessage.textContent = "Preparing host session...";
+                }
+                if (progressBar) {
+                    progressBar.style.width = '0%';
+                }
+                if (progressText) {
+                    progressText.textContent = '0%';
                 }
             }
 

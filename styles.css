@@ -541,6 +541,32 @@ body {
     display: none;
 }
 
+/* Progress bar styles */
+.progress-container {
+    width: 80%;
+    max-width: 300px;
+    background-color: #003300;
+    border: 1px solid #00ff00;
+    border-radius: 10px;
+    margin: 20px 0;
+    height: 20px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #008800, #00ff00);
+    transition: width 0.3s ease;
+    border-radius: 8px;
+}
+
+#progress-text {
+    color: #00ff00;
+    font-size: 1.2rem;
+    margin-top: 10px;
+}
+
 /* Power-up indicator in game */
 #powerup-indicators {
     display: flex;
