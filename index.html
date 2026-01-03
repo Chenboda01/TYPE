@@ -46,10 +46,12 @@
                 <p>Longer words = more powerful bullets</p>
                 <p>Survive as long as you can and achieve the highest WPM!</p>
             </div>
-            <button id="start-button">START MISSION</button>
-            <button id="compete-friends-button">COMPETE WITH FRIENDS!</button>
-            <button id="enter-code-button">ENTER JOIN CODE FOR GAME SIMULATION</button>
-            <button id="help-center-button">HELP CENTER</button>
+            <div class="main-menu-buttons">
+                <button id="start-button">START MISSION</button>
+                <button id="compete-friends-button">COMPETE WITH FRIENDS!</button>
+                <button id="enter-code-button">ENTER JOIN CODE FOR GAME SIMULATION</button>
+                <button id="help-center-button">HELP CENTER</button>
+            </div>
             <div id="difficulty-selection">
                 <label for="difficulty">Difficulty:</label>
                 <select id="difficulty">
@@ -385,6 +387,7 @@
             <div id="progress-bar" class="progress-bar"></div>
         </div>
         <p id="progress-text">0%</p>
+        <button id="loading-back-button" class="back-btn">BACK TO HOME</button>
     </div>
 
     <script src="script.js"></script>

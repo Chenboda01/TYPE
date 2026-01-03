@@ -99,6 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminPanel = document.getElementById('admin-panel');
     const reportsList = document.getElementById('reports-list');
 
+    // Loading indicator elements
+    const loadingBackButton = document.getElementById('loading-back-button');
+
     // Initialize livesContainer after DOM has loaded
     livesContainer = document.getElementById('lives-container');
 
@@ -197,6 +200,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load existing reports when admin panel is shown
     adminLoginBtn.addEventListener('click', loadReports);
+
+    // Loading back button functionality
+    loadingBackButton.addEventListener('click', () => {
+        // Clear any existing timers
+        if (window.hostScreenTimer) {
+            clearTimeout(window.hostScreenTimer);
+        }
+
+        // Hide the loading indicator
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+        }
+
+        // Switch back to the start screen
+        if (hostScreen) hostScreen.classList.remove('active');
+        if (helpCenterScreen) helpCenterScreen.classList.remove('active');
+        startScreen.classList.add('active');
+        gameState = 'start';
+    });
 
     // Music controls
     musicToggle.addEventListener('click', toggleMusic);
@@ -1661,8 +1684,8 @@ function showHostScreen() {
     // Set a maximum time limit (e.g., 3 seconds) to ensure loading indicator hides
     const maxTimeLimit = 3000; // 3 seconds
 
-    // Function to force completion after time limit
-    const timeLimitTimer = setTimeout(() => {
+    // Store timer reference in a variable that can be accessed by the back button
+    window.hostScreenTimer = setTimeout(() => {
         console.log("Time limit reached, forcing completion");
 
         // Ensure the host screen is visible
@@ -1715,7 +1738,9 @@ function showHostScreen() {
         }
 
         // Clear the time limit timer since we completed normally
-        clearTimeout(timeLimitTimer);
+        if (window.hostScreenTimer) {
+            clearTimeout(window.hostScreenTimer);
+        }
     }, 1500); // Wait 1500ms to show completion before hiding
 }
 
