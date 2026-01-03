@@ -428,6 +428,68 @@ body {
     font-family: 'Courier New', Courier, monospace;
 }
 
+/* Join code section styling */
+#join-code-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(0, 20, 0, 0.8);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 400px;
+}
+
+#join-code-label {
+    color: #00ff00;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+#join-code-validation {
+    color: #ff0000;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+#join-code-validation.error {
+    color: #ff0000;
+}
+
+#join-code-validation.success {
+    color: #00ff00;
+}
+
+#join-code-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #000;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    font-family: 'Courier New', Courier, monospace;
+    border-radius: 3px;
+}
+
+#join-code-submit {
+    background-color: #003300;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 10px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+#join-code-submit:hover {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 10px #00ff00;
+}
+
 /* UI Panel styling */
 #ui-panel {
     display: flex;

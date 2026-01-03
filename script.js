@@ -59,11 +59,21 @@ let isGamePaused = false;
 // User authentication and data
 let currentUser = null;
 
+// Multiplayer join code variables
+let activeJoinCodes = []; // Store active join codes
+let currentJoinCode = null; // Store the current join code for this session
+
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-button');
     const restartBtn = document.getElementById('restart-button');
     const wordInput = document.getElementById('word-input');
+    const competeFriendsBtn = document.getElementById('compete-friends-button');
+    const enterCodeBtn = document.getElementById('enter-code-button');
+    const joinCodeSection = document.getElementById('join-code-section');
+    const joinCodeInput = document.getElementById('join-code-input');
+    const joinCodeSubmit = document.getElementById('join-code-submit');
+    const joinCodeValidation = document.getElementById('join-code-validation');
 
     // Initialize livesContainer after DOM has loaded
     livesContainer = document.getElementById('lives-container');
@@ -76,6 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.addEventListener('click', startGame);
     restartBtn.addEventListener('click', startGame);
     wordInput.addEventListener('keydown', handleInput);
+
+    // Multiplayer functionality
+    competeFriendsBtn.addEventListener('click', generateJoinCode);
+    enterCodeBtn.addEventListener('click', showJoinCodeInput);
+    joinCodeSubmit.addEventListener('click', validateJoinCode);
 
     // Music controls
     musicToggle.addEventListener('click', toggleMusic);
@@ -1413,5 +1428,85 @@ function togglePause() {
         if (isMusicPlaying && backgroundMusic) {
             backgroundMusic.play().catch(e => console.log("Audio play error:", e));
         }
+    }
+}
+
+// Generate a random join code
+function generateJoinCode() {
+    // Create a random string of 20 characters (letters, numbers)
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 16; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    // Add a random number to make it unique
+    const randomNum = Math.floor(Math.random() * 1000000);
+    currentJoinCode = result + '.' + randomNum;
+
+    // Add to active codes
+    activeJoinCodes.push(currentJoinCode);
+
+    // Show the code to the user (in a real implementation, you'd show it in a modal or notification)
+    alert(`Your join code is: ${currentJoinCode}\nShare this code with your friends to compete!`);
+
+    // Start the game immediately after generating the code
+    startGame();
+}
+
+// Show the join code input section
+function showJoinCodeInput() {
+    const joinCodeSection = document.getElementById('join-code-section');
+    const joinCodeValidation = document.getElementById('join-code-validation');
+
+    // Show the join code section
+    joinCodeSection.classList.remove('hidden');
+
+    // Hide any previous validation messages
+    joinCodeValidation.classList.add('hidden');
+    joinCodeValidation.textContent = '';
+
+    // Focus on the input field
+    const joinCodeInput = document.getElementById('join-code-input');
+    joinCodeInput.focus();
+}
+
+// Validate the join code entered by the user
+function validateJoinCode() {
+    const joinCodeInput = document.getElementById('join-code-input');
+    const joinCodeValidation = document.getElementById('join-code-validation');
+    const enteredCode = joinCodeInput.value.trim();
+
+    // Step 1: Scan for join codes
+    // Step 2: When user types in a join code, scan for any matches
+    const isValid = activeJoinCodes.includes(enteredCode);
+
+    // Step 3: Report to user if valid or invalid
+    if (isValid) {
+        // Valid join code - show countdown and start game
+        joinCodeValidation.classList.remove('hidden');
+        joinCodeValidation.classList.remove('error');
+        joinCodeValidation.textContent = 'VALID JOIN CODE. JUMPING TO GAME IN 3... 2... 1...';
+        joinCodeValidation.style.color = '#00ff00'; // Green color for valid
+
+        // Start countdown and then start the game
+        setTimeout(() => {
+            startGame();
+        }, 3000); // 3 seconds for countdown
+    } else {
+        // Invalid join code - show error message
+        joinCodeValidation.classList.remove('hidden');
+        joinCodeValidation.classList.add('error');
+        joinCodeValidation.textContent = 'INVALID JOIN CODE PLEASE USE A VALID ONE.';
+        joinCodeValidation.style.color = '#ff0000'; // Red color for error
+    }
+}
+
+// Clean up old join codes periodically to prevent memory issues
+function cleanupJoinCodes() {
+    // In a real implementation, you might want to remove codes that are older than a certain time
+    // For now, we'll just keep the last 100 codes
+    if (activeJoinCodes.length > 100) {
+        activeJoinCodes = activeJoinCodes.slice(-100); // Keep only the last 100 codes
     }
 }

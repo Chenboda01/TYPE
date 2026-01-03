@@ -47,6 +47,8 @@
                 <p>Survive as long as you can and achieve the highest WPM!</p>
             </div>
             <button id="start-button">START MISSION</button>
+            <button id="compete-friends-button">COMPETE WITH FRIENDS!</button>
+            <button id="enter-code-button">ENTER JOIN CODE FOR GAME SIMULATION</button>
             <div id="difficulty-selection">
                 <label for="difficulty">Difficulty:</label>
                 <select id="difficulty">
@@ -54,6 +56,12 @@
                     <option value="medium" selected>Medium</option>
                     <option value="hard">Hard</option>
                 </select>
+            </div>
+            <div id="join-code-section" class="hidden">
+                <p id="join-code-label">Enter join code below:</p>
+                <p id="join-code-validation" class="hidden"></p>
+                <input type="text" id="join-code-input" placeholder="Enter join code..." autocomplete="off">
+                <button id="join-code-submit">JOIN GAME</button>
             </div>
             <div id="user-stats">
                 <p>Best Score: <span id="best-score">0</span></p>

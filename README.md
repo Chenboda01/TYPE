@@ -54,5 +54,13 @@ Planned enhancements include:
 - Visual effects for explosions and hits
 - Sound effects
 - Improved asteroid generation with more diverse words
-- Multiplayer functionality
 - Leaderboard integration
+
+## Multiplayer Functionality
+
+The game now includes multiplayer functionality with join codes:
+
+- Click "COMPETE WITH FRIENDS!" to generate a unique join code to share with friends
+- Friends can use "ENTER JOIN CODE FOR GAME SIMULATION" to join the game using the provided code
+- Valid join codes will start the game after a 3-2-1 countdown
+- Invalid join codes will display an error message
