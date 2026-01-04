@@ -1603,129 +1603,75 @@ function togglePause() {
 function showHostScreen() {
     console.log("showHostScreen function called"); // Debug log
 
-    // Show loading indicator
-    const loadingIndicator = document.getElementById('loading-indicator');
-    console.log("Loading indicator element:", loadingIndicator); // Debug log
-    if (loadingIndicator) {
-        loadingIndicator.classList.remove('hidden');
-        console.log("Loading indicator shown"); // Debug log
-    } else {
-        console.error("Loading indicator element not found"); // Debug log
-        return; // Exit if loading indicator doesn't exist
-    }
-
-    // Initialize progress bar
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-    console.log("Progress bar element:", progressBar); // Debug log
-    console.log("Progress text element:", progressText); // Debug log
-
-    if (progressBar) {
-        progressBar.style.width = '0%';
-    }
-
-    if (progressText) {
-        progressText.textContent = '0%';
-    }
-
-    // Function to update progress with smooth animation
-    function updateProgress(percentage) {
-        if (progressBar) {
-            progressBar.style.width = percentage + '%';
-        }
-        if (progressText) {
-            progressText.textContent = percentage + '%';
-        }
-    }
-
-    // Generate a new join code
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 16; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-
-    // Add a random number to make it unique
-    const randomNum = Math.floor(Math.random() * 1000000);
-    currentJoinCode = result + '.' + randomNum;
-    console.log("Generated join code:", currentJoinCode); // Debug log
-
-    // Add to active codes
-    activeJoinCodes.push(currentJoinCode);
-
-    // Update the join code display on the host screen
-    // We'll do this later after the loading completes
-    const hostScreenElement = document.getElementById('host-screen');
-    console.log("Host screen element:", hostScreenElement); // Debug log
-    if (!hostScreenElement) {
-        console.error("hostScreen element not found"); // Debug log
-
-        // Hide loading indicator if host screen is not found
+    // Simple immediate implementation to test functionality
+    try {
+        // Show loading indicator
+        const loadingIndicator = document.getElementById('loading-indicator');
+        console.log("Loading indicator element:", loadingIndicator); // Debug log
         if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
+            loadingIndicator.classList.remove('hidden');
+            console.log("Loading indicator shown"); // Debug log
+        } else {
+            console.error("Loading indicator element not found"); // Debug log
+            return; // Exit if loading indicator doesn't exist
         }
 
-        return; // Exit early if host screen doesn't exist
-    }
+        // Generate a new join code
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < 16; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
 
-    // Add the host to the players list
-    addPlayerToList(currentUser ? currentUser.username : 'HOST');
+        // Add a random number to make it unique
+        const randomNum = Math.floor(Math.random() * 1000000);
+        currentJoinCode = result + '.' + randomNum;
+        console.log("Generated join code:", currentJoinCode); // Debug log
 
-    // Set game state to hosting
-    gameState = 'hosting';
-    console.log("Game state set to hosting"); // Debug log
+        // Add to active codes
+        activeJoinCodes.push(currentJoinCode);
 
-    // Animate the progress to 100% over 1.5 seconds using setInterval for better reliability
-    const duration = 1500; // 1.5 seconds
-    const startTime = Date.now();
-    const interval = 16; // ~60fps for smooth animation
+        // Get the host screen element
+        const hostScreenElement = document.getElementById('host-screen');
+        console.log("Host screen element:", hostScreenElement); // Debug log
+        if (!hostScreenElement) {
+            console.error("hostScreen element not found"); // Debug log
+            return; // Exit early if host screen doesn't exist
+        }
 
-    console.log("Starting progress animation"); // Debug log
-    const progressInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progressPercentage = Math.min(100, (elapsed / duration) * 100);
+        // Add the host to the players list
+        addPlayerToList(currentUser ? currentUser.username : 'HOST');
 
-        updateProgress(progressPercentage);
+        // Set game state to hosting
+        gameState = 'hosting';
+        console.log("Game state set to hosting"); // Debug log
 
-        if (progressPercentage >= 100) {
-            console.log("Progress reached 100%"); // Debug log
-            clearInterval(progressInterval);
+        // Switch to host screen immediately
+        const startScreenElement = document.getElementById('start-screen');
+        if (startScreenElement) startScreenElement.classList.remove('active');
+        hostScreenElement.classList.add('active');
+        console.log("Host screen activated"); // Debug log
 
-            // At 100%, update the join code display and show the host screen
-            const currentJoinCodeDisplay = document.getElementById('current-join-code');
-            console.log("Current join code display element:", currentJoinCodeDisplay); // Debug log
-            if (currentJoinCodeDisplay) {
-                currentJoinCodeDisplay.textContent = currentJoinCode;
-                console.log("Join code displayed:", currentJoinCode); // Debug log
-            } else {
-                console.error("currentJoinCodeDisplay element not found"); // Debug log
+        // Update the join code display
+        const currentJoinCodeDisplay = document.getElementById('current-join-code');
+        console.log("Current join code display element:", currentJoinCodeDisplay); // Debug log
+        if (currentJoinCodeDisplay) {
+            currentJoinCodeDisplay.textContent = currentJoinCode;
+            console.log("Join code displayed:", currentJoinCode); // Debug log
+        } else {
+            console.error("currentJoinCodeDisplay element not found"); // Debug log
+        }
+
+        // Hide loading indicator after a short delay
+        setTimeout(() => {
+            if (loadingIndicator) {
+                loadingIndicator.classList.add('hidden');
             }
+        }, 1000); // Wait 1 second before hiding
 
-            // Switch to host screen after progress completes
-            const startScreenElement = document.getElementById('start-screen');
-            if (startScreenElement) startScreenElement.classList.remove('active');
-            hostScreenElement.classList.add('active');
-            console.log("Host screen activated"); // Debug log
-
-            // Hide loading indicator after a short delay to allow user to see completion
-            setTimeout(() => {
-                if (loadingIndicator) {
-                    loadingIndicator.classList.add('hidden');
-                    // Reset the message text and progress
-                    const messageElement = loadingIndicator.querySelector('p');
-                    if (messageElement) {
-                        messageElement.textContent = "Preparing host session...";
-                    }
-                    if (progressBar) {
-                        progressBar.style.width = '0%';
-                    }
-                    if (progressText) {
-                        progressText.textContent = '0%';
-                    }
-                }
-            }, 500); // Wait 500ms to show completion before hiding
-        }
-    }, interval);
+    } catch (error) {
+        console.error("Error in showHostScreen:", error);
+    }
 }
 
 // Add a player to the players list on the host screen
