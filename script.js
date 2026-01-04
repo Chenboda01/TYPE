@@ -1656,14 +1656,17 @@ function showHostScreen() {
         hostScreenElement.classList.add('active');
         console.log("Host screen activated"); // Debug log
 
-        // Update the join code display on the host screen AFTER it's visible
-        const currentJoinCodeDisplay = document.getElementById('current-join-code');
-        if (currentJoinCodeDisplay) {
-            currentJoinCodeDisplay.textContent = currentJoinCode;
-            console.log("Join code displayed:", currentJoinCode); // Debug log
-        } else {
-            console.error("currentJoinCodeDisplay element not found"); // Debug log
-        }
+        // Use a small delay to ensure the DOM is updated before accessing the element
+        setTimeout(() => {
+            // Update the join code display on the host screen AFTER it's visible
+            const currentJoinCodeDisplay = document.getElementById('current-join-code');
+            if (currentJoinCodeDisplay) {
+                currentJoinCodeDisplay.textContent = currentJoinCode;
+                console.log("Join code displayed:", currentJoinCode); // Debug log
+            } else {
+                console.error("currentJoinCodeDisplay element not found"); // Debug log
+            }
+        }, 100); // Small delay to ensure DOM is ready
     } else {
         console.error("hostScreen element not found"); // Debug log
 
