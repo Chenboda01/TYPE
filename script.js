@@ -1605,14 +1605,20 @@ function showHostScreen() {
 
     // Show loading indicator
     const loadingIndicator = document.getElementById('loading-indicator');
+    console.log("Loading indicator element:", loadingIndicator); // Debug log
     if (loadingIndicator) {
         loadingIndicator.classList.remove('hidden');
+        console.log("Loading indicator shown"); // Debug log
+    } else {
+        console.error("Loading indicator element not found"); // Debug log
+        return; // Exit if loading indicator doesn't exist
     }
 
     // Initialize progress bar
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
-    let progress = 0;
+    console.log("Progress bar element:", progressBar); // Debug log
+    console.log("Progress text element:", progressText); // Debug log
 
     if (progressBar) {
         progressBar.style.width = '0%';
@@ -1624,12 +1630,11 @@ function showHostScreen() {
 
     // Function to update progress with smooth animation
     function updateProgress(percentage) {
-        progress = percentage;
         if (progressBar) {
-            progressBar.style.width = progress + '%';
+            progressBar.style.width = percentage + '%';
         }
         if (progressText) {
-            progressText.textContent = progress + '%';
+            progressText.textContent = percentage + '%';
         }
     }
 
@@ -1643,6 +1648,7 @@ function showHostScreen() {
     // Add a random number to make it unique
     const randomNum = Math.floor(Math.random() * 1000000);
     currentJoinCode = result + '.' + randomNum;
+    console.log("Generated join code:", currentJoinCode); // Debug log
 
     // Add to active codes
     activeJoinCodes.push(currentJoinCode);
@@ -1650,6 +1656,7 @@ function showHostScreen() {
     // Update the join code display on the host screen
     // We'll do this later after the loading completes
     const hostScreenElement = document.getElementById('host-screen');
+    console.log("Host screen element:", hostScreenElement); // Debug log
     if (!hostScreenElement) {
         console.error("hostScreen element not found"); // Debug log
 
@@ -1673,6 +1680,7 @@ function showHostScreen() {
     const startTime = Date.now();
     const interval = 16; // ~60fps for smooth animation
 
+    console.log("Starting progress animation"); // Debug log
     const progressInterval = setInterval(() => {
         const elapsed = Date.now() - startTime;
         const progressPercentage = Math.min(100, (elapsed / duration) * 100);
@@ -1680,10 +1688,12 @@ function showHostScreen() {
         updateProgress(progressPercentage);
 
         if (progressPercentage >= 100) {
+            console.log("Progress reached 100%"); // Debug log
             clearInterval(progressInterval);
 
             // At 100%, update the join code display and show the host screen
             const currentJoinCodeDisplay = document.getElementById('current-join-code');
+            console.log("Current join code display element:", currentJoinCodeDisplay); // Debug log
             if (currentJoinCodeDisplay) {
                 currentJoinCodeDisplay.textContent = currentJoinCode;
                 console.log("Join code displayed:", currentJoinCode); // Debug log
@@ -1692,7 +1702,8 @@ function showHostScreen() {
             }
 
             // Switch to host screen after progress completes
-            if (startScreen) startScreen.classList.remove('active');
+            const startScreenElement = document.getElementById('start-screen');
+            if (startScreenElement) startScreenElement.classList.remove('active');
             hostScreenElement.classList.add('active');
             console.log("Host screen activated"); // Debug log
 
