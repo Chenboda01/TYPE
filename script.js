@@ -1613,7 +1613,7 @@ function showHostScreen() {
             console.log("Loading indicator shown"); // Debug log
         } else {
             console.error("Loading indicator element not found"); // Debug log
-            return; // Exit if loading indicator doesn't exist
+            // Continue without loading indicator if not found
         }
 
         // Generate a new join code
@@ -1646,10 +1646,12 @@ function showHostScreen() {
         gameState = 'hosting';
         console.log("Game state set to hosting"); // Debug log
 
-        // Switch to host screen immediately
-        const startScreenElement = document.getElementById('start-screen');
-        if (startScreenElement) startScreenElement.classList.remove('active');
-        hostScreenElement.classList.add('active');
+        // Switch screens: hide all screens first, then show host screen
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        // Add the animation class first, then the active class for the transition
+        hostScreenElement.classList.add('active', 'showing');
         console.log("Host screen activated"); // Debug log
 
         // Update the join code display
@@ -1671,6 +1673,12 @@ function showHostScreen() {
 
     } catch (error) {
         console.error("Error in showHostScreen:", error);
+
+        // Ensure loading indicator is hidden even if there's an error
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+        }
     }
 }
 
