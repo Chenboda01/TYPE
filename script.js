@@ -1647,22 +1647,23 @@ function showHostScreen() {
     // Add to active codes
     activeJoinCodes.push(currentJoinCode);
 
-    // Update the join code display on the host screen
-    if (currentJoinCodeDisplay) {
-        currentJoinCodeDisplay.textContent = currentJoinCode;
-        console.log("Join code displayed:", currentJoinCode); // Debug log
-    } else {
-        console.error("currentJoinCodeDisplay element not found"); // Debug log
-    }
-
-    // Add the host to the players list
-    addPlayerToList(currentUser ? currentUser.username : 'HOST');
-
     // Switch to host screen immediately
     if (startScreen) startScreen.classList.remove('active');
-    if (hostScreen) {
-        hostScreen.classList.add('active');
+
+    // Get the host screen element again to make sure it's fresh
+    const hostScreenElement = document.getElementById('host-screen');
+    if (hostScreenElement) {
+        hostScreenElement.classList.add('active');
         console.log("Host screen activated"); // Debug log
+
+        // Update the join code display on the host screen AFTER it's visible
+        const currentJoinCodeDisplay = document.getElementById('current-join-code');
+        if (currentJoinCodeDisplay) {
+            currentJoinCodeDisplay.textContent = currentJoinCode;
+            console.log("Join code displayed:", currentJoinCode); // Debug log
+        } else {
+            console.error("currentJoinCodeDisplay element not found"); // Debug log
+        }
     } else {
         console.error("hostScreen element not found"); // Debug log
 
@@ -1673,6 +1674,9 @@ function showHostScreen() {
 
         return; // Exit early if host screen doesn't exist
     }
+
+    // Add the host to the players list
+    addPlayerToList(currentUser ? currentUser.username : 'HOST');
 
     // Set game state to hosting
     gameState = 'hosting';
@@ -1690,8 +1694,8 @@ function showHostScreen() {
 
         // Ensure the host screen is visible
         if (startScreen) startScreen.classList.remove('active');
-        if (hostScreen && !hostScreen.classList.contains('active')) {
-            hostScreen.classList.add('active');
+        if (hostScreenElement && !hostScreenElement.classList.contains('active')) {
+            hostScreenElement.classList.add('active');
             console.log("Host screen activated by time limit");
         }
 
