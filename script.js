@@ -1633,7 +1633,7 @@ function showHostScreen() {
         }
     }
 
-    // Generate a new join code immediately
+    // Generate a new join code
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < 16; i++) {
@@ -1647,27 +1647,10 @@ function showHostScreen() {
     // Add to active codes
     activeJoinCodes.push(currentJoinCode);
 
-    // Switch to host screen immediately
-    if (startScreen) startScreen.classList.remove('active');
-
-    // Get the host screen element again to make sure it's fresh
+    // Update the join code display on the host screen
+    // We'll do this later after the loading completes
     const hostScreenElement = document.getElementById('host-screen');
-    if (hostScreenElement) {
-        hostScreenElement.classList.add('active');
-        console.log("Host screen activated"); // Debug log
-
-        // Use a small delay to ensure the DOM is updated before accessing the element
-        setTimeout(() => {
-            // Update the join code display on the host screen AFTER it's visible
-            const currentJoinCodeDisplay = document.getElementById('current-join-code');
-            if (currentJoinCodeDisplay) {
-                currentJoinCodeDisplay.textContent = currentJoinCode;
-                console.log("Join code displayed:", currentJoinCode); // Debug log
-            } else {
-                console.error("currentJoinCodeDisplay element not found"); // Debug log
-            }
-        }, 100); // Small delay to ensure DOM is ready
-    } else {
+    if (!hostScreenElement) {
         console.error("hostScreen element not found"); // Debug log
 
         // Hide loading indicator if host screen is not found
@@ -1685,70 +1668,55 @@ function showHostScreen() {
     gameState = 'hosting';
     console.log("Game state set to hosting"); // Debug log
 
-    // Set progress to 100% immediately
-    updateProgress(100);
+    // Animate the progress to 100% over 1.5 seconds
+    const duration = 1500; // 1.5 seconds
+    const startTime = Date.now();
 
-    // Set a maximum time limit (e.g., 3 seconds) to ensure loading indicator hides
-    const maxTimeLimit = 3000; // 3 seconds
+    function animateProgress() {
+        const elapsed = Date.now() - startTime;
+        const progressPercentage = Math.min(100, (elapsed / duration) * 100);
 
-    // Store timer reference in a variable that can be accessed by the back button
-    window.hostScreenTimer = setTimeout(() => {
-        console.log("Time limit reached, forcing completion");
+        updateProgress(progressPercentage);
 
-        // Ensure the host screen is visible
-        if (startScreen) startScreen.classList.remove('active');
-        if (hostScreenElement && !hostScreenElement.classList.contains('active')) {
+        if (progressPercentage < 100) {
+            requestAnimationFrame(animateProgress);
+        } else {
+            // At 100%, update the join code display and show the host screen
+            const currentJoinCodeDisplay = document.getElementById('current-join-code');
+            if (currentJoinCodeDisplay) {
+                currentJoinCodeDisplay.textContent = currentJoinCode;
+                console.log("Join code displayed:", currentJoinCode); // Debug log
+            } else {
+                console.error("currentJoinCodeDisplay element not found"); // Debug log
+            }
+
+            // Switch to host screen after progress completes
+            if (startScreen) startScreen.classList.remove('active');
             hostScreenElement.classList.add('active');
-            console.log("Host screen activated by time limit");
-        }
+            console.log("Host screen activated"); // Debug log
 
-        // Set game state to hosting if not already done
-        if (gameState !== 'hosting') {
-            gameState = 'hosting';
-            console.log("Game state set to hosting by time limit");
-        }
-
-        // Hide loading indicator after a short delay
-        setTimeout(() => {
-            if (loadingIndicator) {
-                loadingIndicator.classList.add('hidden');
-                // Reset the message text and progress
-                const messageElement = loadingIndicator.querySelector('p');
-                if (messageElement) {
-                    messageElement.textContent = "Preparing host session...";
+            // Hide loading indicator after a short delay to allow user to see completion
+            setTimeout(() => {
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('hidden');
+                    // Reset the message text and progress
+                    const messageElement = loadingIndicator.querySelector('p');
+                    if (messageElement) {
+                        messageElement.textContent = "Preparing host session...";
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = '0%';
+                    }
+                    if (progressText) {
+                        progressText.textContent = '0%';
+                    }
                 }
-                if (progressBar) {
-                    progressBar.style.width = '0%';
-                }
-                if (progressText) {
-                    progressText.textContent = '0%';
-                }
-            }
-        }, 500); // Wait 500ms to show completion before hiding
-    }, maxTimeLimit);
-
-    // Hide loading indicator after a short delay to allow user to see completion
-    setTimeout(() => {
-        if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
-            // Reset the message text and progress
-            const messageElement = loadingIndicator.querySelector('p');
-            if (messageElement) {
-                messageElement.textContent = "Preparing host session...";
-            }
-            if (progressBar) {
-                progressBar.style.width = '0%';
-            }
-            if (progressText) {
-                progressText.textContent = '0%';
-            }
+            }, 500); // Wait 500ms to show completion before hiding
         }
+    }
 
-        // Clear the time limit timer since we completed normally
-        if (window.hostScreenTimer) {
-            clearTimeout(window.hostScreenTimer);
-        }
-    }, 1500); // Wait 1500ms to show completion before hiding
+    // Start the progress animation
+    animateProgress();
 }
 
 // Add a player to the players list on the host screen
