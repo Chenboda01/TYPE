@@ -1668,19 +1668,20 @@ function showHostScreen() {
     gameState = 'hosting';
     console.log("Game state set to hosting"); // Debug log
 
-    // Animate the progress to 100% over 1.5 seconds
+    // Animate the progress to 100% over 1.5 seconds using setInterval for better reliability
     const duration = 1500; // 1.5 seconds
     const startTime = Date.now();
+    const interval = 16; // ~60fps for smooth animation
 
-    function animateProgress() {
+    const progressInterval = setInterval(() => {
         const elapsed = Date.now() - startTime;
         const progressPercentage = Math.min(100, (elapsed / duration) * 100);
 
         updateProgress(progressPercentage);
 
-        if (progressPercentage < 100) {
-            requestAnimationFrame(animateProgress);
-        } else {
+        if (progressPercentage >= 100) {
+            clearInterval(progressInterval);
+
             // At 100%, update the join code display and show the host screen
             const currentJoinCodeDisplay = document.getElementById('current-join-code');
             if (currentJoinCodeDisplay) {
@@ -1713,10 +1714,7 @@ function showHostScreen() {
                 }
             }, 500); // Wait 500ms to show completion before hiding
         }
-    }
-
-    // Start the progress animation
-    animateProgress();
+    }, interval);
 }
 
 // Add a player to the players list on the host screen
