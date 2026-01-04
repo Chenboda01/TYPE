@@ -193,13 +193,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (password === '771122') {
             adminPanel.classList.remove('hidden');
             adminPassword.value = ''; // Clear password field
+            // Load existing reports after successful authentication
+            loadReports();
         } else {
             alert('Incorrect password. Access denied.');
         }
     });
-
-    // Load existing reports when admin panel is shown
-    adminLoginBtn.addEventListener('click', loadReports);
 
     // Loading back button functionality
     loadingBackButton.addEventListener('click', () => {
@@ -626,12 +625,11 @@ function startGame() {
     updateLivesDisplay(); // Initialize lives display
     updatePowerupCounts(); // Update power-up counts in UI
 
-    // Switch screens
-    if (hostScreen) hostScreen.classList.remove('active');
-    if (helpCenterScreen) helpCenterScreen.classList.remove('active');
-    startScreen.classList.remove('active');
+    // Switch screens - hide all screens first, then show game screen
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
     gameScreen.classList.add('active');
-    gameOverScreen.classList.remove('active');
 
     // Clear previous game elements
     asteroidField.innerHTML = '';
@@ -1650,8 +1648,8 @@ function showHostScreen() {
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
         });
-        // Add the animation class first, then the active class for the transition
-        hostScreenElement.classList.add('active', 'showing');
+        // Add the active class for the transition (animation is handled by CSS)
+        hostScreenElement.classList.add('active');
         console.log("Host screen activated"); // Debug log
 
         // Update the join code display
