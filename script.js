@@ -220,6 +220,18 @@ document.addEventListener('DOMContentLoaded', () => {
             adminPassword.value = ''; // Clear password field
             // Load existing reports after successful authentication
             loadReports();
+
+            // Ensure the admin panel is properly secured - add additional security measures
+            // Add a timestamp to track when the admin session started
+            window.adminSessionStart = Date.now();
+
+            // Add a timeout for admin session (30 minutes)
+            setTimeout(() => {
+                if (adminPanel && !adminPanel.classList.contains('hidden')) {
+                    adminPanel.classList.add('hidden');
+                    alert('Admin session expired. Please log in again.');
+                }
+            }, 30 * 60 * 1000); // 30 minutes
         } else {
             alert('Incorrect password. Access denied.');
         }
@@ -1780,6 +1792,11 @@ function saveReport(report) {
 
     // Log for debugging purposes
     console.log('Report saved:', report);
+
+    // Ensure the admin panel is updated if it's currently visible
+    if (adminPanel && !adminPanel.classList.contains('hidden')) {
+        loadReports();
+    }
 }
 
 // Load reports from localStorage and display them
