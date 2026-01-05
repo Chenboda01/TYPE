@@ -153,6 +153,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Set game state to hosting
         gameState = 'hosting';
+
+        // Ensure the host screen is properly displayed
+        hostScreen.classList.add('active');
+        startScreen.classList.remove('active');
+
+        // Initialize player list with current user
+        if (currentUser) {
+            addPlayerToList(currentUser.username);
+        }
     });
 
     enterCodeBtn.addEventListener('click', showJoinCodeInput);
@@ -229,6 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (adminPanel && !adminPanel.classList.contains('hidden')) {
             loadReports();
         }
+
+        // Ensure the help center screen is still active after submitting report
+        helpCenterScreen.classList.add('active');
+        startScreen.classList.remove('active');
+        gameState = 'help';
     });
 
     // Admin login
