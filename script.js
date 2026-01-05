@@ -314,51 +314,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Otherwise, go back to the game screen
             gameScreen.classList.add('active');
             gameState = window.previousGameState || 'playing';
-            // If game was paused and we're returning to gameplay, unpause it
-            if (gameState === 'playing' && isGamePaused) {
-                // Directly resume the game without toggling
-                isGamePaused = false;
 
-                // Resume the game
-                gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
-
-                // Restart asteroid spawning if needed
-                if (spawnInterval) {
-                    clearInterval(spawnInterval);
-                }
-                spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
-
-                // Restart powerup spawning if needed (only if level >= 3)
-                if (level >= 3) {
-                    if (powerupSpawnInterval) {
-                        clearInterval(powerupSpawnInterval);
-                    }
-                    powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
-                }
-
-                // Update button text
-                const pauseButton = document.getElementById('pause-button');
-                if (pauseButton) {
-                    pauseButton.textContent = '⏸️'; // Pause symbol
-                    pauseButton.title = 'Pause Game';
-                }
-
-                // Hide pause overlay
-                const pauseOverlay = document.getElementById('pause-overlay');
-                if (pauseOverlay) {
-                    pauseOverlay.classList.remove('active');
-                }
-
-                // Resume background music if it was playing
-                if (isMusicPlaying && backgroundMusic) {
-                    backgroundMusic.play().catch(e => console.log("Audio play error:", e));
-                }
-            } else if (gameState === 'playing' && !isGamePaused) {
-                // If game wasn't paused, ensure it's running by restarting the game interval if needed
+            // If game wasn't paused, ensure it's running by restarting the game interval if needed
+            if (gameState === 'playing' && !isGamePaused) {
                 if (!gameInterval) {
                     gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
                 }
             }
+            // If game was paused, intervals are already cleared, so we don't need to restart them
         }
     });
 
@@ -415,12 +378,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameState = 'shop';
             }
         } else {
-            // If in gameplay, pause the game and show the shop
-            if (gameState === 'playing' && !isGamePaused) {
-                togglePause();
+            // If in gameplay, handle the shop access
+            if (gameState === 'playing') {
+                // Store the previous game state to return to it later
+                window.previousGameState = gameState;
+
+                // If game is currently running, pause it before going to shop
+                if (!isGamePaused) {
+                    togglePause(); // This will pause the game
+                }
+                // If game is already paused, we just store the state and go to shop
+            } else {
+                // For any other state, store it as the previous state
+                window.previousGameState = gameState;
             }
-            // Store the previous game state to return to it later
-            window.previousGameState = gameState;
+
             // Show store screen
             gameScreen.classList.remove('active');
             storeScreen.classList.add('active');
@@ -1604,7 +1576,10 @@ function updateVolume() {
 
 // Toggle game pause/resume
 function togglePause() {
-    if (gameState !== 'playing') return; // Only allow pausing during gameplay
+    // Only allow pausing/resuming during gameplay
+    if (gameState !== 'playing') {
+        return; // Only allow pausing/resuming when in playing state
+    }
 
     isGamePaused = !isGamePaused;
 
@@ -1625,11 +1600,15 @@ function togglePause() {
         lastPauseTime = Date.now();
 
         // Update button text
-        pauseButton.textContent = '▶️'; // Play symbol
-        pauseButton.title = 'Resume Game';
+        if (pauseButton) {
+            pauseButton.textContent = '▶️'; // Play symbol
+            pauseButton.title = 'Resume Game';
+        }
 
         // Show pause overlay
-        pauseOverlay.classList.add('active');
+        if (pauseOverlay) {
+            pauseOverlay.classList.add('active');
+        }
 
         // Pause background music
         if (backgroundMusic && !backgroundMusic.paused) {
@@ -1660,11 +1639,15 @@ function togglePause() {
         }
 
         // Update button text
-        pauseButton.textContent = '⏸️'; // Pause symbol
-        pauseButton.title = 'Pause Game';
+        if (pauseButton) {
+            pauseButton.textContent = '⏸️'; // Pause symbol
+            pauseButton.title = 'Pause Game';
+        }
 
         // Hide pause overlay
-        pauseOverlay.classList.remove('active');
+        if (pauseOverlay) {
+            pauseOverlay.classList.remove('active');
+        }
 
         // Resume background music if it was playing
         if (isMusicPlaying && backgroundMusic) {
@@ -1784,6 +1767,9 @@ function saveReport(report) {
 
     // Save back to localStorage
     localStorage.setItem('reports', JSON.stringify(reports));
+
+    // Log for debugging purposes
+    console.log('Report saved:', report);
 }
 
 // Load reports from localStorage and display them
