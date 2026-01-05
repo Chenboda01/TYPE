@@ -272,23 +272,31 @@ document.addEventListener('DOMContentLoaded', () => {
     backToProfileButton.addEventListener('click', () => {
         storeScreen.classList.remove('active');
         profileScreen.classList.add('active');
-
-        // If we came from gameplay, we should return to gameplay when going back
-        // Don't change the game state here, just switch screens
+        gameState = window.previousGameState || 'start';
     });
 
     backToGameFromStoreButton.addEventListener('click', () => {
         storeScreen.classList.remove('active');
-        gameScreen.classList.add('active');
-        // Restore the previous game state
-        gameState = window.previousGameState || 'playing';
-        // If game was paused and we're returning to gameplay, unpause it
-        if (gameState === 'playing' && isGamePaused) {
-            togglePause();
-        } else if (gameState === 'playing' && !isGamePaused) {
-            // If game wasn't paused, ensure it's running by restarting the game interval if needed
-            if (!gameInterval) {
-                gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+        // If the previous game state was start or game over, we should go back to that screen
+        if (window.previousGameState === 'start' || window.previousGameState === 'gameOver') {
+            if (window.previousGameState === 'start') {
+                startScreen.classList.add('active');
+            } else {
+                gameOverScreen.classList.add('active');
+            }
+            gameState = window.previousGameState;
+        } else {
+            // Otherwise, go back to the game screen
+            gameScreen.classList.add('active');
+            gameState = window.previousGameState || 'playing';
+            // If game was paused and we're returning to gameplay, unpause it
+            if (gameState === 'playing' && isGamePaused) {
+                togglePause();
+            } else if (gameState === 'playing' && !isGamePaused) {
+                // If game wasn't paused, ensure it's running by restarting the game interval if needed
+                if (!gameInterval) {
+                    gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+                }
             }
         }
     });
@@ -330,6 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // If on start screen or game over screen, go to profile first, then shop
         if (gameState === 'start' || gameState === 'gameOver') {
             if (currentUser) {
+                // Store the previous game state to return to it later
+                window.previousGameState = gameState;
                 // Switch to profile screen first, then shop
                 if (gameState === 'start') {
                     startScreen.classList.remove('active');
@@ -1318,8 +1328,11 @@ function checkPowerupTimers() {
 
 // Show store screen
 function showStoreScreen() {
+    // Store the previous game state to return to it later
+    window.previousGameState = gameState;
     profileScreen.classList.remove('active');
     storeScreen.classList.add('active');
+    gameState = 'shop';
 
     // Update powerup counts in the store
     updatePowerupCounts();
