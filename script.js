@@ -341,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Then switch to store
                 profileScreen.classList.remove('active');
                 storeScreen.classList.add('active');
+                gameState = 'shop';
             }
         } else {
             // If in gameplay, pause the game and show the shop
@@ -576,6 +577,7 @@ function startGame() {
     if (gameState === 'shop') {
         storeScreen.classList.remove('active');
         gameScreen.classList.add('active');
+        gameState = 'playing';
         // If game was paused, unpause it
         if (isGamePaused) {
             togglePause();
