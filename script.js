@@ -140,7 +140,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Multiplayer functionality
-    competeFriendsBtn.addEventListener('click', showHostScreen);
+    competeFriendsBtn.addEventListener('click', () => {
+        // Show host screen and generate a new join code
+        showHostScreen();
+
+        // Generate a new join code
+        currentJoinCode = generateJoinCode();
+        currentJoinCodeDisplay.textContent = currentJoinCode;
+
+        // Add to active join codes list
+        activeJoinCodes.push(currentJoinCode);
+
+        // Set game state to hosting
+        gameState = 'hosting';
+    });
+
     enterCodeBtn.addEventListener('click', showJoinCodeInput);
     joinCodeSubmit.addEventListener('click', validateJoinCode);
 
@@ -210,6 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show confirmation and reset form
         alert('Your report has been submitted successfully!');
         reportForm.reset();
+
+        // Also update the admin panel if it's currently visible
+        if (adminPanel && !adminPanel.classList.contains('hidden')) {
+            loadReports();
+        }
     });
 
     // Admin login
