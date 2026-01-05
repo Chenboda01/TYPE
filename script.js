@@ -729,6 +729,16 @@ function startGame() {
 
     // Update powerup counts display
     updatePowerupCounts();
+
+    // Add a small delay before starting the game to ensure all elements are properly initialized
+    setTimeout(() => {
+        // Ensure the game is properly initialized
+        if (gameState === 'playing') {
+            // Start the game loop again to ensure it's running
+            clearInterval(gameInterval);
+            gameInterval = setInterval(updateGame, 1000 / 60);
+        }
+    }, 100);
 }
 
 // Handle user input
