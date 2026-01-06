@@ -136,6 +136,15 @@ document.addEventListener('DOMContentLoaded', () => {
         showStoreScreen();
     });
 
+    // Add updates button to main menu
+    const updatesButton = document.getElementById('updates-button');
+    if (updatesButton) {
+        updatesButton.addEventListener('click', () => {
+            // Show update notification
+            showUpdateNotification();
+        });
+    }
+
     // Multiplayer functionality
     competeFriendsBtn.addEventListener('click', () => {
         // Show host screen and generate a new join code
