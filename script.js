@@ -131,12 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Navigate to profile screen first, then to store
         startScreen.classList.remove('active');
         profileScreen.classList.add('active');
-        gameState = 'shop';
 
         // Then navigate to store screen
-        setTimeout(() => {
-            showStoreScreen();
-        }, 100); // Small delay to ensure screen transition
+        showStoreScreen();
     });
 
     // Multiplayer functionality
@@ -360,13 +357,42 @@ document.addEventListener('DOMContentLoaded', () => {
             gameScreen.classList.add('active');
             gameState = window.previousGameState || 'playing';
 
-            // If game wasn't paused, ensure it's running by restarting the game interval if needed
-            if (gameState === 'playing' && !isGamePaused) {
+            // Check if the game was paused when we went to the shop
+            if (window.wasGamePausedWhenGoingToShop) {
+                // If the game was paused when going to the shop, keep it paused
+                // Ensure the pause UI is shown
+                isGamePaused = true;
+                const pauseButton = document.getElementById('pause-button');
+                const pauseOverlay = document.getElementById('pause-overlay');
+
+                if (pauseButton) {
+                    pauseButton.textContent = '▶️'; // Play symbol
+                    pauseButton.title = 'Resume Game';
+                }
+
+                if (pauseOverlay) {
+                    pauseOverlay.classList.add('active');
+                }
+            } else {
+                // If the game was not paused when going to the shop, ensure it's running
+                isGamePaused = false;
                 if (!gameInterval) {
                     gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
                 }
+
+                // Ensure the pause UI is hidden
+                const pauseButton = document.getElementById('pause-button');
+                const pauseOverlay = document.getElementById('pause-overlay');
+
+                if (pauseButton) {
+                    pauseButton.textContent = '⏸️'; // Pause symbol
+                    pauseButton.title = 'Pause Game';
+                }
+
+                if (pauseOverlay) {
+                    pauseOverlay.classList.remove('active');
+                }
             }
-            // If game was paused, intervals are already cleared, so we don't need to restart them
         }
     });
 
@@ -425,14 +451,47 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // If in gameplay, handle the shop access
             if (gameState === 'playing') {
-                // Store the previous game state to return to it later
-                window.previousGameState = gameState;
+                // Store the previous game state and pause status to return to it later
+                window.previousGameState = 'playing';
+                // Store whether the game was paused when going to the shop
+                window.wasGamePausedWhenGoingToShop = isGamePaused;
 
-                // If game is currently running, pause it before going to shop
+                // If the game is currently running, we need to pause it
                 if (!isGamePaused) {
-                    togglePause(); // This will pause the game
+                    // Pause the game by calling togglePause without changing the pause state
+                    // We'll manually pause the game here
+                    isGamePaused = true;
+
+                    // Pause the game
+                    clearInterval(gameInterval);
+                    if (spawnInterval) {
+                        clearInterval(spawnInterval);
+                    }
+                    if (powerupSpawnInterval) {
+                        clearInterval(powerupSpawnInterval);
+                    }
+
+                    // Track when the game was paused
+                    lastPauseTime = Date.now();
+
+                    // Update button text
+                    const pauseButton = document.getElementById('pause-button');
+                    if (pauseButton) {
+                        pauseButton.textContent = '▶️'; // Play symbol
+                        pauseButton.title = 'Resume Game';
+                    }
+
+                    // Show pause overlay
+                    const pauseOverlay = document.getElementById('pause-overlay');
+                    if (pauseOverlay) {
+                        pauseOverlay.classList.add('active');
+                    }
+
+                    // Pause background music
+                    if (backgroundMusic && !backgroundMusic.paused) {
+                        backgroundMusic.pause();
+                    }
                 }
-                // If game is already paused, we just store the state and go to shop
             } else {
                 // For any other state, store it as the previous state
                 window.previousGameState = gameState;
@@ -1633,7 +1692,15 @@ function updateVolume() {
 function togglePause() {
     // Only allow pausing/resuming during gameplay
     if (gameState !== 'playing') {
-        return; // Only allow pausing/resuming when in playing state
+        // If we're in the shop state, we should return to the game first
+        if (gameState === 'shop') {
+            // Switch back to game screen
+            storeScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+            gameState = 'playing';
+        } else {
+            return; // Only allow pausing/resuming when in playing state
+        }
     }
 
     isGamePaused = !isGamePaused;
