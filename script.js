@@ -591,6 +591,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize music
     initMusic();
 
+    // Initialize global state variables to prevent conflicts
+    window.previousGameState = null;
+    window.wasGamePausedWhenGoingToShop = false;
+
     // Check if user is already logged in
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
@@ -746,6 +750,10 @@ function handleSignup() {
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
+    // Initialize global state variables to prevent conflicts after signup
+    window.previousGameState = null;
+    window.wasGamePausedWhenGoingToShop = false;
+
     // Switch to start screen
     showStartScreen();
     updatePowerupCounts();
@@ -784,6 +792,10 @@ function handleLogin() {
     // Update UI with user stats
     updateStartScreenUserInfo();
     updatePowerupCounts();
+
+    // Initialize global state variables to prevent conflicts after login
+    window.previousGameState = null;
+    window.wasGamePausedWhenGoingToShop = false;
 
     // Switch to start screen
     showStartScreen();
@@ -1440,6 +1452,10 @@ function endGame() {
         storeScreen.classList.remove('active');
     }
 
+    // Reset global state variables after game ends
+    window.previousGameState = null;
+    window.wasGamePausedWhenGoingToShop = false;
+
     // Switch screens
     gameScreen.classList.remove('active');
     gameOverScreen.classList.add('active');
@@ -1511,6 +1527,10 @@ function handleLogout() {
     // Clear current user
     currentUser = null;
     localStorage.removeItem('currentUser');
+
+    // Reset global state variables after logout
+    window.previousGameState = null;
+    window.wasGamePausedWhenGoingToShop = false;
 
     // Go back to auth screen
     profileScreen.classList.remove('active');
