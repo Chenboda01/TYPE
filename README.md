@@ -64,3 +64,10 @@ The game now includes multiplayer functionality with join codes:
 - Friends can use "ENTER JOIN CODE FOR GAME SIMULATION" to join the game using the provided code
 - Valid join codes will start the game after a 3-2-1 countdown
 - Invalid join codes will display an error message
+
+## Updates section:
+
+The game now includes updates section with version 2.0:
+
+- Click "Updates" to view the latest version updates and patch notes
+- Click "Update now" or "Update later" to choose when to apply updates
