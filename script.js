@@ -136,32 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showStoreScreen();
     });
 
-    // Add updates button to main menu
-    const updatesButton = document.getElementById('updates-button');
-    if (updatesButton) {
-        updatesButton.addEventListener('click', () => {
-            // Show update notification
-            showUpdateNotification();
-        });
-    }
-
-    // Add updates button to main menu
-    const updatesButton = document.getElementById('updates-button');
-    if (updatesButton) {
-        updatesButton.addEventListener('click', () => {
-            // Show update notification
-            showUpdateNotification();
-        });
-    }
-
-    // Add updates button to main menu
-    const updatesButton = document.getElementById('updates-button');
-    if (updatesButton) {
-        updatesButton.addEventListener('click', () => {
-            // Show update notification
-            showUpdateNotification();
-        });
-    }
 
     // Multiplayer functionality
     competeFriendsBtn.addEventListener('click', () => {
@@ -357,6 +331,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupUsername = document.getElementById('signup-username');
     const signupPassword = document.getElementById('signup-password');
     const confirmPassword = document.getElementById('confirm-password');
+
+    // Add event listeners for authentication elements
+    loginButton.addEventListener('click', handleLogin);
+    signupButton.addEventListener('click', handleSignup);
+    showSignupLink.addEventListener('click', showSignupForm);
+    showLoginLink.addEventListener('click', showLoginForm);
+
+    // Add form submission handlers to prevent default behavior
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleLogin();
+    });
+
+    signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleSignup();
+    });
 
     // Profile screen elements
     const profileScreen = document.getElementById('profile-screen');
