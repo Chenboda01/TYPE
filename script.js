@@ -159,6 +159,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUser) {
             addPlayerToList(currentUser.username);
         }
+
+        // Add event listener for start game button to handle countdown
+        startGameButton.addEventListener('click', () => {
+            // Start a 3-2-1 countdown before starting the game
+            const countdownElement = document.getElementById('countdown');
+            if (countdownElement) {
+                countdownElement.style.display = 'block';
+                let count = 3;
+
+                const countdownInterval = setInterval(() => {
+                    countdownElement.textContent = count;
+                    count--;
+
+                    if (count < 0) {
+                        clearInterval(countdownInterval);
+                        countdownElement.style.display = 'none';
+
+                        // Start the game after countdown
+                        startGame();
+                    }
+                }, 1000);
+            }
+        });
     });
 
     enterCodeBtn.addEventListener('click', showJoinCodeInput);
@@ -502,6 +525,13 @@ document.addEventListener('DOMContentLoaded', () => {
             storeScreen.classList.add('active');
             gameState = 'shop';
         }
+
+        // Ensure the store screen is properly displayed
+        storeScreen.classList.add('active');
+        gameScreen.classList.remove('active');
+
+        // Update power-up counts in store
+        updatePowerupCounts();
     });
 
     // Add resume button event listener
@@ -540,7 +570,93 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUser = JSON.parse(savedUser);
         showStartScreen();
     }
+
+    // Check for updates
+    checkForUpdates();
 });
+
+// Function to check for updates
+function checkForUpdates() {
+    // Get current version from localStorage or default to 1.0
+    let currentVersion = localStorage.getItem('gameVersion') || '1.0';
+
+    // Check if there's a new version available (version 2.0)
+    if (currentVersion !== '2.0') {
+        // Show update notification
+        showUpdateNotification();
+    }
+}
+
+// Function to show update notification
+function showUpdateNotification() {
+    // Create update notification element if it doesn't exist
+    let updateNotification = document.getElementById('update-notification');
+    if (!updateNotification) {
+        updateNotification = document.createElement('div');
+        updateNotification.id = 'update-notification';
+        updateNotification.className = 'update-notification';
+        updateNotification.innerHTML = `
+            <div class="update-content">
+                <h3>🎉 New Version Available!</h3>
+                <p>Version 2.0 is now available with exciting new features and improvements!</p>
+                <div class="update-buttons">
+                    <button id="update-now-btn">Update Now</button>
+                    <button id="update-later-btn">Update Later</button>
+                </div>
+            </div>
+        `;
+
+        // Add to start screen
+        const startScreen = document.getElementById('start-screen');
+        if (startScreen) {
+            startScreen.appendChild(updateNotification);
+        }
+
+        // Add event listeners to buttons
+        document.getElementById('update-now-btn').addEventListener('click', updateToVersion2);
+        document.getElementById('update-later-btn').addEventListener('click', () => {
+            updateNotification.style.display = 'none';
+            // Store that user chose to update later
+            localStorage.setItem('updateLater', 'true');
+        });
+    }
+
+    // Show the notification
+    updateNotification.style.display = 'block';
+}
+
+// Function to update to version 2.0
+function updateToVersion2() {
+    // Show loading indicator
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.classList.remove('hidden');
+        loadingIndicator.innerHTML = '<p>Updating to Version 2.0...</p>';
+    }
+
+    // Simulate update process (in a real application, this would download and install the update)
+    setTimeout(() => {
+        // Update version in localStorage
+        localStorage.setItem('gameVersion', '2.0');
+
+        // Hide update notification
+        const updateNotification = document.getElementById('update-notification');
+        if (updateNotification) {
+            updateNotification.style.display = 'none';
+        }
+
+        // Hide loading indicator
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+        }
+
+        // Show success message
+        alert('Successfully updated to Version 2.0! Enjoy the new features!');
+
+        // Reload the page to apply changes
+        location.reload();
+    }, 2000);
+}
 
 // Show signup form
 function showSignupForm(e) {
