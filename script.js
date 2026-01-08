@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Navigate to profile screen first, then to store
         startScreen.classList.remove('active');
-        profileScreen.classList.add('active');
+        document.getElementById('profile-screen').classList.add('active');
 
         // Then navigate to store screen
         showStoreScreen();
@@ -138,30 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Multiplayer functionality
-    competeFriendsBtn.addEventListener('click', () => {
-        // Show host screen and generate a new join code
-        showHostScreen();
+    competeFriendsBtn.addEventListener('click', showHostScreen);
 
-        // Generate a new join code
-        currentJoinCode = generateJoinCode();
-        currentJoinCodeDisplay.textContent = currentJoinCode;
+    // Initialize player list with current user
+    if (currentUser) {
+        addPlayerToList(currentUser.username);
+    }
 
-        // Add to active join codes list
-        activeJoinCodes.push(currentJoinCode);
-
-        // Set game state to hosting
-        gameState = 'hosting';
-
-        // Ensure the host screen is properly displayed
-        hostScreen.classList.add('active');
-        startScreen.classList.remove('active');
-
-        // Initialize player list with current user
-        if (currentUser) {
-            addPlayerToList(currentUser.username);
-        }
-
-        // Add event listener for start game button to handle countdown
+    // Add event listener for start game button to handle countdown
         startGameButton.addEventListener('click', () => {
             // Start a 3-2-1 countdown before starting the game
             const countdownElement = document.getElementById('countdown');
@@ -181,9 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         startGame();
                     }
                 }, 1000);
+            } else {
+                // If countdown element doesn't exist, just start the game
+                startGame();
             }
         });
-    });
 
     enterCodeBtn.addEventListener('click', showJoinCodeInput);
     joinCodeSubmit.addEventListener('click', validateJoinCode);
@@ -1852,82 +1838,122 @@ function togglePause() {
             storeScreen.classList.remove('active');
             gameScreen.classList.add('active');
             gameState = 'playing';
+
+            // If the game was paused when going to the shop, resume it
+            if (isGamePaused) {
+                isGamePaused = false;
+
+                // Resume the game
+                gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+
+                // Restart asteroid spawning if needed
+                if (spawnInterval) {
+                    clearInterval(spawnInterval);
+                }
+                spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+                // Restart powerup spawning if needed (only if level >= 3)
+                if (level >= 3) {
+                    if (powerupSpawnInterval) {
+                        clearInterval(powerupSpawnInterval);
+                    }
+                    powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
+                }
+
+                // Update button text
+                const pauseButton = document.getElementById('pause-button');
+                if (pauseButton) {
+                    pauseButton.textContent = '⏸️'; // Pause symbol
+                    pauseButton.title = 'Pause Game';
+                }
+
+                // Hide pause overlay
+                const pauseOverlay = document.getElementById('pause-overlay');
+                if (pauseOverlay) {
+                    pauseOverlay.classList.remove('active');
+                }
+
+                // Resume background music if it was playing
+                if (isMusicPlaying && backgroundMusic) {
+                    backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+                }
+            }
         } else {
             return; // Only allow pausing/resuming when in playing state
         }
-    }
-
-    isGamePaused = !isGamePaused;
-
-    const pauseButton = document.getElementById('pause-button');
-    const pauseOverlay = document.getElementById('pause-overlay');
-
-    if (isGamePaused) {
-        // Pause the game
-        clearInterval(gameInterval);
-        if (spawnInterval) {
-            clearInterval(spawnInterval);
-        }
-        if (powerupSpawnInterval) {
-            clearInterval(powerupSpawnInterval);
-        }
-
-        // Track when the game was paused
-        lastPauseTime = Date.now();
-
-        // Update button text
-        if (pauseButton) {
-            pauseButton.textContent = '▶️'; // Play symbol
-            pauseButton.title = 'Resume Game';
-        }
-
-        // Show pause overlay
-        if (pauseOverlay) {
-            pauseOverlay.classList.add('active');
-        }
-
-        // Pause background music
-        if (backgroundMusic && !backgroundMusic.paused) {
-            backgroundMusic.pause();
-        }
     } else {
-        // Calculate how long the game was paused
-        if (lastPauseTime > 0) {
-            pausedTime += Date.now() - lastPauseTime;
-            lastPauseTime = 0; // Reset the pause start time
-        }
+        isGamePaused = !isGamePaused;
 
-        // Resume the game
-        gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+        const pauseButton = document.getElementById('pause-button');
+        const pauseOverlay = document.getElementById('pause-overlay');
 
-        // Restart asteroid spawning if needed
-        if (spawnInterval) {
-            clearInterval(spawnInterval);
-        }
-        spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
-
-        // Restart powerup spawning if needed (only if level >= 3)
-        if (level >= 3) {
+        if (isGamePaused) {
+            // Pause the game
+            clearInterval(gameInterval);
+            if (spawnInterval) {
+                clearInterval(spawnInterval);
+            }
             if (powerupSpawnInterval) {
                 clearInterval(powerupSpawnInterval);
             }
-            powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
-        }
 
-        // Update button text
-        if (pauseButton) {
-            pauseButton.textContent = '⏸️'; // Pause symbol
-            pauseButton.title = 'Pause Game';
-        }
+            // Track when the game was paused
+            lastPauseTime = Date.now();
 
-        // Hide pause overlay
-        if (pauseOverlay) {
-            pauseOverlay.classList.remove('active');
-        }
+            // Update button text
+            if (pauseButton) {
+                pauseButton.textContent = '▶️'; // Play symbol
+                pauseButton.title = 'Resume Game';
+            }
 
-        // Resume background music if it was playing
-        if (isMusicPlaying && backgroundMusic) {
-            backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+            // Show pause overlay
+            if (pauseOverlay) {
+                pauseOverlay.classList.add('active');
+            }
+
+            // Pause background music
+            if (backgroundMusic && !backgroundMusic.paused) {
+                backgroundMusic.pause();
+            }
+        } else {
+            // Calculate how long the game was paused
+            if (lastPauseTime > 0) {
+                pausedTime += Date.now() - lastPauseTime;
+                lastPauseTime = 0; // Reset the pause start time
+            }
+
+            // Resume the game
+            gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+
+            // Restart asteroid spawning if needed
+            if (spawnInterval) {
+                clearInterval(spawnInterval);
+            }
+            spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+            // Restart powerup spawning if needed (only if level >= 3)
+            if (level >= 3) {
+                if (powerupSpawnInterval) {
+                    clearInterval(powerupSpawnInterval);
+                }
+                powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
+            }
+
+            // Update button text
+            if (pauseButton) {
+                pauseButton.textContent = '⏸️'; // Pause symbol
+                pauseButton.title = 'Pause Game';
+            }
+
+            // Hide pause overlay
+            if (pauseOverlay) {
+                pauseOverlay.classList.remove('active');
+            }
+
+            // Resume background music if it was playing
+            if (isMusicPlaying && backgroundMusic) {
+                backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+            }
         }
     }
 }
