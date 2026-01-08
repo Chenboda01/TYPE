@@ -400,11 +400,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (pauseOverlay) {
                     pauseOverlay.classList.add('active');
                 }
+
+                // Make sure game intervals are cleared when game remains paused
+                clearInterval(gameInterval);
+                if (spawnInterval) {
+                    clearInterval(spawnInterval);
+                }
+                if (powerupSpawnInterval) {
+                    clearInterval(powerupSpawnInterval);
+                }
             } else {
                 // If the game was not paused when going to the shop, ensure it's running
                 isGamePaused = false;
-                if (!gameInterval) {
-                    gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+
+                // Resume the game
+                gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+
+                // Restart asteroid spawning if needed
+                if (spawnInterval) {
+                    clearInterval(spawnInterval);
+                }
+                spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+                // Restart powerup spawning if needed (only if level >= 3)
+                if (level >= 3) {
+                    if (powerupSpawnInterval) {
+                        clearInterval(powerupSpawnInterval);
+                    }
+                    powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
                 }
 
                 // Ensure the pause UI is hidden
@@ -418,6 +441,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (pauseOverlay) {
                     pauseOverlay.classList.remove('active');
+                }
+
+                // Resume background music if it was playing
+                if (isMusicPlaying && backgroundMusic) {
+                    backgroundMusic.play().catch(e => console.log("Audio play error:", e));
                 }
             }
         }
@@ -465,13 +493,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Switch to profile screen first, then shop
                 if (gameState === 'start') {
                     startScreen.classList.remove('active');
-                    profileScreen.classList.add('active');
+                    document.getElementById('profile-screen').classList.add('active');
                 } else {
                     gameOverScreen.classList.remove('active');
-                    profileScreen.classList.add('active');
+                    document.getElementById('profile-screen').classList.add('active');
                 }
                 // Then switch to store
-                profileScreen.classList.remove('active');
+                document.getElementById('profile-screen').classList.remove('active');
                 storeScreen.classList.add('active');
                 gameState = 'shop';
             }
@@ -857,9 +885,68 @@ function startGame() {
         storeScreen.classList.remove('active');
         gameScreen.classList.add('active');
         gameState = 'playing';
-        // If game was paused, unpause it
-        if (isGamePaused) {
-            togglePause();
+        // If game was paused when going to the shop, ensure it stays paused
+        if (window.wasGamePausedWhenGoingToShop) {
+            // Make sure the game remains paused
+            isGamePaused = true;
+            const pauseButton = document.getElementById('pause-button');
+            const pauseOverlay = document.getElementById('pause-overlay');
+
+            if (pauseButton) {
+                pauseButton.textContent = '▶️'; // Play symbol
+                pauseButton.title = 'Resume Game';
+            }
+
+            if (pauseOverlay) {
+                pauseOverlay.classList.add('active');
+            }
+
+            // Make sure game intervals are cleared when game remains paused
+            clearInterval(gameInterval);
+            if (spawnInterval) {
+                clearInterval(spawnInterval);
+            }
+            if (powerupSpawnInterval) {
+                clearInterval(powerupSpawnInterval);
+            }
+        } else {
+            // If game was not paused when going to the shop, ensure it's running
+            isGamePaused = false;
+
+            // Resume the game
+            gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+
+            // Restart asteroid spawning if needed
+            if (spawnInterval) {
+                clearInterval(spawnInterval);
+            }
+            spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+            // Restart powerup spawning if needed (only if level >= 3)
+            if (level >= 3) {
+                if (powerupSpawnInterval) {
+                    clearInterval(powerupSpawnInterval);
+                }
+                powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
+            }
+
+            // Ensure the pause UI is hidden
+            const pauseButton = document.getElementById('pause-button');
+            const pauseOverlay = document.getElementById('pause-overlay');
+
+            if (pauseButton) {
+                pauseButton.textContent = '⏸️'; // Pause symbol
+                pauseButton.title = 'Pause Game';
+            }
+
+            if (pauseOverlay) {
+                pauseOverlay.classList.remove('active');
+            }
+
+            // Resume background music if it was playing
+            if (isMusicPlaying && backgroundMusic) {
+                backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+            }
         }
         return;
     }
