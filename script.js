@@ -47,6 +47,11 @@ const powerupContainer = document.getElementById('powerup-container');
 const storeScreen = document.getElementById('store-screen');
 
 let livesContainer; // Declare livesContainer variable to be initialized after DOM load
+let playersList;
+let adminPanel;
+let reportsList;
+let hostScreen;
+let helpCenterScreen;
 
 // Audio elements
 let backgroundMusic;
@@ -78,9 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const joinCodeValidation = document.getElementById('join-code-validation');
 
     // Host screen elements
-    const hostScreen = document.getElementById('host-screen');
+    hostScreen = document.getElementById('host-screen');
     const currentJoinCodeDisplay = document.getElementById('current-join-code');
-    const playersList = document.getElementById('players-list');
+    playersList = document.getElementById('players-list');
     const startGameButton = document.getElementById('start-game-button');
     const endGameButton = document.getElementById('end-game-button');
     const playerNameInput = document.getElementById('player-name-input');
@@ -88,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Help Center elements
     const helpCenterButton = document.getElementById('help-center-button');
-    const helpCenterScreen = document.getElementById('help-center-screen');
+    helpCenterScreen = document.getElementById('help-center-screen');
     const helpCenterBackButton = document.getElementById('help-center-back-button');
     const reportForm = document.getElementById('report-form');
     const reportType = document.getElementById('report-type');
@@ -96,8 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const reportEmail = document.getElementById('report-email');
     const adminPassword = document.getElementById('admin-password');
     const adminLoginBtn = document.getElementById('admin-login-btn');
-    const adminPanel = document.getElementById('admin-panel');
-    const reportsList = document.getElementById('reports-list');
+    adminPanel = document.getElementById('admin-panel');
+    reportsList = document.getElementById('reports-list');
 
     // Loading indicator elements
     const loadingBackButton = document.getElementById('loading-back-button');
