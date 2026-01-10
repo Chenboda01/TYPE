@@ -1924,123 +1924,85 @@ function togglePause() {
             // Switch back to game screen
             storeScreen.classList.remove('active');
             gameScreen.classList.add('active');
-            gameState = 'playing';
-
-            // If the game was paused when going to the shop, resume it
-            if (isGamePaused) {
-                isGamePaused = false;
-
-                // Resume the game
-                gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
-
-                // Restart asteroid spawning if needed
-                if (spawnInterval) {
-                    clearInterval(spawnInterval);
-                }
-                spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
-
-                // Restart powerup spawning if needed (only if level >= 3)
-                if (level >= 3) {
-                    if (powerupSpawnInterval) {
-                        clearInterval(powerupSpawnInterval);
-                    }
-                    powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
-                }
-
-                // Update button text
-                const pauseButton = document.getElementById('pause-button');
-                if (pauseButton) {
-                    pauseButton.textContent = '⏸️'; // Pause symbol
-                    pauseButton.title = 'Pause Game';
-                }
-
-                // Hide pause overlay
-                const pauseOverlay = document.getElementById('pause-overlay');
-                if (pauseOverlay) {
-                    pauseOverlay.classList.remove('active');
-                }
-
-                // Resume background music if it was playing
-                if (isMusicPlaying && backgroundMusic) {
-                    backgroundMusic.play().catch(e => console.log("Audio play error:", e));
-                }
-            }
+            // Don't change the pause state here, just return to the game screen
+            // The game should remain in whatever pause state it was in before
         } else {
-            return; // Only allow pausing/resuming when in playing state
+            // For any other state (like hosting), just return without doing anything
+            return;
+        }
+    }
+
+    isGamePaused = !isGamePaused;
+
+    const pauseButton = document.getElementById('pause-button');
+    const pauseOverlay = document.getElementById('pause-overlay');
+
+    if (isGamePaused) {
+        // Pause the game
+        clearInterval(gameInterval);
+        if (spawnInterval) {
+            clearInterval(spawnInterval);
+        }
+        if (powerupSpawnInterval) {
+            clearInterval(powerupSpawnInterval);
+        }
+
+        // Track when the game was paused
+        lastPauseTime = Date.now();
+
+        // Update button text
+        if (pauseButton) {
+            pauseButton.textContent = '▶️'; // Play symbol
+            pauseButton.title = 'Resume Game';
+        }
+
+        // Show pause overlay
+        if (pauseOverlay) {
+            pauseOverlay.classList.add('active');
+        }
+
+        // Pause background music
+        if (backgroundMusic && !backgroundMusic.paused) {
+            backgroundMusic.pause();
         }
     } else {
-        isGamePaused = !isGamePaused;
+        // Calculate how long the game was paused
+        if (lastPauseTime > 0) {
+            pausedTime += Date.now() - lastPauseTime;
+            lastPauseTime = 0; // Reset the pause start time
+        }
 
-        const pauseButton = document.getElementById('pause-button');
-        const pauseOverlay = document.getElementById('pause-overlay');
+        // Resume the game
+        gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
 
-        if (isGamePaused) {
-            // Pause the game
-            clearInterval(gameInterval);
-            if (spawnInterval) {
-                clearInterval(spawnInterval);
-            }
+        // Restart asteroid spawning if needed
+        if (spawnInterval) {
+            clearInterval(spawnInterval);
+        }
+        spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
+
+        // Restart powerup spawning if needed (only if level >= 3)
+        if (level >= 3) {
             if (powerupSpawnInterval) {
                 clearInterval(powerupSpawnInterval);
             }
+            powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
+        }
 
-            // Track when the game was paused
-            lastPauseTime = Date.now();
+        // Update button text
+        if (pauseButton) {
+            pauseButton.textContent = '⏸️'; // Pause symbol
+            pauseButton.title = 'Pause Game';
+        }
 
-            // Update button text
-            if (pauseButton) {
-                pauseButton.textContent = '▶️'; // Play symbol
-                pauseButton.title = 'Resume Game';
-            }
+        // Hide pause overlay
+        if (pauseOverlay) {
+            pauseOverlay.classList.remove('active');
+        }
 
-            // Show pause overlay
-            if (pauseOverlay) {
-                pauseOverlay.classList.add('active');
-            }
-
-            // Pause background music
-            if (backgroundMusic && !backgroundMusic.paused) {
-                backgroundMusic.pause();
-            }
-        } else {
-            // Calculate how long the game was paused
-            if (lastPauseTime > 0) {
-                pausedTime += Date.now() - lastPauseTime;
-                lastPauseTime = 0; // Reset the pause start time
-            }
-
-            // Resume the game
-            gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
-
-            // Restart asteroid spawning if needed
-            if (spawnInterval) {
-                clearInterval(spawnInterval);
-            }
-            spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
-
-            // Restart powerup spawning if needed (only if level >= 3)
-            if (level >= 3) {
-                if (powerupSpawnInterval) {
-                    clearInterval(powerupSpawnInterval);
-                }
-                powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds
-            }
-
-            // Update button text
-            if (pauseButton) {
-                pauseButton.textContent = '⏸️'; // Pause symbol
-                pauseButton.title = 'Pause Game';
-            }
-
-            // Hide pause overlay
-            if (pauseOverlay) {
-                pauseOverlay.classList.remove('active');
-            }
-
-            // Resume background music if it was playing
-            if (isMusicPlaying && backgroundMusic) {
-                backgroundMusic.play().catch(e => console.log("Audio play error:", e));
-            }
+        // Resume background music if it was playing
+        if (isMusicPlaying && backgroundMusic) {
+            backgroundMusic.play().catch(e => console.log("Audio play error:", e));
         }
     }
 }
