@@ -400,6 +400,39 @@ body {
     margin-top: 10px;
 }
 
+.copy-code-button {
+    background-color: #003300;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    margin: 10px 0;
+    border-radius: 5px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.copy-code-button:hover {
+    background-color: #00ff00;
+    color: #000;
+    box-shadow: 0 0 15px #00ff00;
+}
+
+.copy-code-button:active {
+    transform: scale(0.95);
+    background-color: #00cc00;
+    box-shadow: 0 0 20px #00ff00;
+}
+
+.copy-code-button.copied {
+    background-color: #00ff00;
+    color: #000;
+    border-color: #ffff00;
+    box-shadow: 0 0 20px #ffff00;
+}
+
 .players-section {
     margin-bottom: 30px;
 }
@@ -442,6 +475,28 @@ body {
     padding: 3px 8px;
     border-radius: 10px;
     font-size: 0.8rem;
+}
+
+.player-remove-btn {
+    background-color: #990000;
+    color: white;
+    border: 1px solid #ff0000;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.player-remove-btn:hover {
+    background-color: #ff0000;
+    box-shadow: 0 0 8px #ff0000;
 }
 
 .add-player-section {

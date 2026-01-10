@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const endGameButton = document.getElementById('end-game-button');
     const playerNameInput = document.getElementById('player-name-input');
     const addPlayerButton = document.getElementById('add-player-button');
+    const copyJoinCodeButton = document.getElementById('copy-join-code-button');
 
     // Help Center elements
     const helpCenterButton = document.getElementById('help-center-button');
@@ -261,8 +262,18 @@ document.addEventListener('DOMContentLoaded', () => {
     adminLoginBtn.addEventListener('click', () => {
         const password = adminPassword.value;
         if (password === '771122') {
+            console.log('Admin login successful');
+            
+            // Ensure we have fresh references to DOM elements
+            adminPanel = document.getElementById('admin-panel');
+            reportsList = document.getElementById('reports-list');
+            
+            console.log('adminPanel found:', !!adminPanel);
+            console.log('reportsList found:', !!reportsList);
+            
             adminPanel.classList.remove('hidden');
             adminPassword.value = ''; // Clear password field
+            
             // Load existing reports after successful authentication
             loadReports();
 
@@ -2029,16 +2040,28 @@ function showHostScreen() {
             // Continue without loading indicator if not found
         }
 
-        // Generate a new join code
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let result = '';
-        for (let i = 0; i < 16; i++) {
-            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        // Generate a new join code in format: 4 letters (mixed case) + 4 digits
+        let attempts = 0;
+        const maxAttempts = 5;
+        let code = '';
+        
+        do {
+            code = generateJoinCode();
+            attempts++;
+        } while (activeJoinCodes.some(c => c.toLowerCase() === code.toLowerCase()) && attempts < maxAttempts);
+        
+        // If still duplicate after max attempts, append suffix
+        if (activeJoinCodes.some(c => c.toLowerCase() === code.toLowerCase())) {
+            let suffix = 1;
+            let uniqueCode = '';
+            do {
+                uniqueCode = code + '_' + suffix.toString().padStart(2, '0');
+                suffix++;
+            } while (activeJoinCodes.some(c => c.toLowerCase() === uniqueCode.toLowerCase()) && suffix <= 99);
+            code = uniqueCode;
         }
-
-        // Add a random number to make it unique
-        const randomNum = Math.floor(Math.random() * 1000000);
-        currentJoinCode = result + '.' + randomNum;
+        
+        currentJoinCode = code;
         console.log("Generated join code:", currentJoinCode); // Debug log
 
         // Add to active codes
@@ -2052,7 +2075,8 @@ function showHostScreen() {
             return; // Exit early if host screen doesn't exist
         }
 
-        // Add the host to the players list
+        // Clear existing players and add the host to the players list
+        if (playersList) playersList.innerHTML = '';
         addPlayerToList(currentUser ? currentUser.username : 'HOST');
 
         // Set game state to hosting
@@ -2095,10 +2119,76 @@ function showHostScreen() {
     }
 }
 
+// Generate a new join code in format: 4 letters (mixed case) + 4 digits
+function generateJoinCode() {
+    // Letters pool: A-Z and a-z
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    // Digits pool: 0-9
+    const digits = '0123456789';
+    
+    let code = '';
+    
+    // Generate 4 random letters
+    for (let i = 0; i < 4; i++) {
+        code += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    
+    // Generate 4 random digits
+    for (let i = 0; i < 4; i++) {
+        code += digits.charAt(Math.floor(Math.random() * digits.length));
+    }
+    
+    return code;
+}
+
+// Copy join code to clipboard with visual feedback
+function copyJoinCodeToClipboard() {
+    const joinCodeDisplay = document.getElementById('current-join-code');
+    const copyButton = document.getElementById('copy-join-code-button');
+    
+    if (!joinCodeDisplay || !copyButton) {
+        console.error('Copy join code elements not found');
+        return;
+    }
+    
+    const joinCode = joinCodeDisplay.textContent;
+    
+    // Check if join code is still "Generating..." or empty
+    if (!joinCode || joinCode === 'Generating...') {
+        console.warn('No valid join code to copy');
+        copyButton.textContent = 'NO CODE';
+        setTimeout(() => {
+            copyButton.textContent = 'COPY CODE';
+        }, 2000);
+        return;
+    }
+    
+    // Use Clipboard API
+    navigator.clipboard.writeText(joinCode).then(() => {
+        // Visual feedback
+        const originalText = copyButton.textContent;
+        copyButton.textContent = 'COPIED!';
+        copyButton.classList.add('copied');
+        
+        // Reset after 2 seconds
+        setTimeout(() => {
+            copyButton.textContent = originalText;
+            copyButton.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy join code:', err);
+        copyButton.textContent = 'FAILED';
+        setTimeout(() => {
+            copyButton.textContent = 'COPY CODE';
+        }, 2000);
+    });
+}
+
 // Add a player to the players list on the host screen
 function addPlayerToList(username) {
     const playerItem = document.createElement('div');
     playerItem.className = 'player-item';
+    playerItem.dataset.username = username;
 
     const playerName = document.createElement('span');
     playerName.className = 'player-name';
@@ -2110,86 +2200,211 @@ function addPlayerToList(username) {
 
     playerItem.appendChild(playerName);
     playerItem.appendChild(playerStatus);
+
+    const hostUsername = currentUser ? currentUser.username : 'HOST';
+    if (username !== hostUsername) {
+        const removeButton = document.createElement('button');
+        removeButton.className = 'player-remove-btn';
+        removeButton.textContent = '×';
+        removeButton.title = 'Remove player';
+        removeButton.addEventListener('click', () => removePlayerFromList(username, playerItem));
+        playerItem.appendChild(removeButton);
+    }
+
     playersList.appendChild(playerItem);
+}
+
+// Remove a player from the players list on the host screen
+function removePlayerFromList(username, playerItem) {
+    // Prevent removing the host
+    const hostUsername = currentUser ? currentUser.username : 'HOST';
+    if (username === hostUsername) {
+        alert('Cannot remove the host from the game');
+        return;
+    }
+    
+    // Remove the player item from the DOM
+    if (playerItem && playerItem.parentNode === playersList) {
+        playersList.removeChild(playerItem);
+    }
 }
 
 // Save a report to localStorage
 function saveReport(report) {
-    // Get existing reports or initialize an empty array
-    const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+    try {
+        // Get existing reports or initialize an empty array
+        let reports;
+        try {
+            const reportsStr = localStorage.getItem('reports');
+            reports = reportsStr ? JSON.parse(reportsStr) : [];
+            if (!Array.isArray(reports)) {
+                console.warn('Stored reports is not an array, resetting');
+                reports = [];
+            }
+        } catch (e) {
+            console.error('Error parsing reports from localStorage:', e);
+            reports = [];
+        }
 
-    // Add the new report
-    reports.push(report);
+        // Add the new report
+        reports.push(report);
 
-    // Save back to localStorage
-    localStorage.setItem('reports', JSON.stringify(reports));
+        // Save back to localStorage
+        localStorage.setItem('reports', JSON.stringify(reports));
 
-    // Log for debugging purposes
-    console.log('Report saved:', report);
+        // Log for debugging purposes
+        console.log('Report saved:', report);
+        console.log('Total reports in localStorage:', reports.length);
+        console.log('adminPanel exists:', !!adminPanel);
+        console.log('adminPanel hidden?', adminPanel ? adminPanel.classList.contains('hidden') : 'N/A');
 
-    // Ensure the admin panel is updated if it's currently visible
-    if (adminPanel && !adminPanel.classList.contains('hidden')) {
-        loadReports();
+        // Ensure the admin panel is updated if it's currently visible
+        if (adminPanel && !adminPanel.classList.contains('hidden')) {
+            console.log('Admin panel visible, calling loadReports()');
+            loadReports();
+        } else {
+            console.log('Admin panel not visible, skipping loadReports()');
+        }
+    } catch (error) {
+        console.error('Error saving report:', error);
+        alert('Error saving report. Please try again.');
     }
 }
 
 // Load reports from localStorage and display them
 function loadReports() {
-    // Get reports from localStorage
-    const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+    try {
+        console.log('loadReports called');
+        console.log('reportsList exists:', !!reportsList);
+        
+        // Get reports from localStorage with error handling
+        let reports;
+        try {
+            const reportsStr = localStorage.getItem('reports');
+            if (!reportsStr) {
+                reports = [];
+            } else {
+                reports = JSON.parse(reportsStr);
+                if (!Array.isArray(reports)) {
+                    console.warn('Stored reports is not an array, resetting');
+                    reports = [];
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing reports from localStorage:', e);
+            reports = [];
+        }
+        
+        console.log('Found reports in localStorage:', reports.length);
 
-    // Clear the reports list
-    reportsList.innerHTML = '';
+        // Ensure reportsList exists
+        if (!reportsList) {
+            console.log('reportsList not found, attempting to get fresh reference');
+            reportsList = document.getElementById('reports-list');
+        }
+        
+        if (!reportsList) {
+            console.error('Could not find reports-list element');
+            return;
+        }
+        
+        // Clear the reports list
+        reportsList.innerHTML = '';
 
-    // If no reports, show a message
-    if (reports.length === 0) {
-        reportsList.innerHTML = '<p>No reports yet.</p>';
-        return;
-    }
+        // If no reports, show a message
+        if (reports.length === 0) {
+            reportsList.innerHTML = '<p>No reports yet.</p>';
+            console.log('No reports to display');
+            return;
+        }
 
-    // Add each report to the list
-    reports.forEach(report => {
-        const reportElement = document.createElement('div');
-        reportElement.className = 'report-item';
-
-        // Format the date for display
-        const date = new Date(report.timestamp);
-        const formattedDate = date.toLocaleString();
-
-        reportElement.innerHTML = `
-            <div class="report-item-header">
-                <span>${report.type.toUpperCase()} - ${formattedDate}</span>
-                <button class="delete-report-btn" data-id="${report.id}">DELETE</button>
-            </div>
-            <div class="report-item-content">${report.description}</div>
-            <div class="report-item-email">Email: ${report.email}</div>
-        `;
-
-        reportsList.appendChild(reportElement);
-    });
-
-    // Add event listeners to delete buttons
-    document.querySelectorAll('.delete-report-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const reportId = parseInt(this.getAttribute('data-id'));
-            deleteReport(reportId);
+        // Sort reports by timestamp descending (newest first)
+        const sortedReports = [...reports].sort((a, b) => {
+            return new Date(b.timestamp) - new Date(a.timestamp);
         });
+
+        console.log('Displaying', sortedReports.length, 'reports (newest first)');
+
+        // Add each report to the list
+        sortedReports.forEach(report => {
+            const reportElement = document.createElement('div');
+            reportElement.className = 'report-item';
+
+            // Format the date for display
+            const date = new Date(report.timestamp);
+            const formattedDate = date.toLocaleString();
+
+            reportElement.innerHTML = `
+                <div class="report-item-header">
+                    <span>${report.type.toUpperCase()} - ${formattedDate}</span>
+                    <button class="delete-report-btn" data-id="${report.id}">DELETE</button>
+                </div>
+                <div class="report-item-content">${report.description}</div>
+                <div class="report-item-email">Email: ${report.email}</div>
+            `;
+
+            reportsList.appendChild(reportElement);
+        });
+
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-report-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const reportId = parseInt(this.getAttribute('data-id'));
+                deleteReport(reportId);
     });
+
+    // Copy join code button functionality
+    copyJoinCodeButton.addEventListener('click', copyJoinCodeToClipboard);
+        });
+        
+        console.log('Reports displayed successfully');
+    } catch (error) {
+        console.error('Error loading reports:', error);
+        if (reportsList) {
+            reportsList.innerHTML = '<p class="error">Error loading reports. Please try again.</p>';
+        }
+    }
 }
 
 // Delete a report by ID
 function deleteReport(reportId) {
-    // Get existing reports
-    let reports = JSON.parse(localStorage.getItem('reports') || '[]');
+    try {
+        console.log('Deleting report with ID:', reportId);
+        
+        // Get existing reports with error handling
+        let reports;
+        try {
+            const reportsStr = localStorage.getItem('reports');
+            if (!reportsStr) {
+                reports = [];
+            } else {
+                reports = JSON.parse(reportsStr);
+                if (!Array.isArray(reports)) {
+                    console.warn('Stored reports is not an array, resetting');
+                    reports = [];
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing reports from localStorage:', e);
+            reports = [];
+        }
 
-    // Filter out the report with the specified ID
-    reports = reports.filter(report => report.id !== reportId);
+        // Filter out the report with the specified ID
+        const initialLength = reports.length;
+        reports = reports.filter(report => report.id !== reportId);
+        const removedCount = initialLength - reports.length;
+        
+        console.log(`Removed ${removedCount} report(s)`);
 
-    // Save back to localStorage
-    localStorage.setItem('reports', JSON.stringify(reports));
+        // Save back to localStorage
+        localStorage.setItem('reports', JSON.stringify(reports));
 
-    // Reload the reports list
-    loadReports();
+        // Reload the reports list
+        loadReports();
+    } catch (error) {
+        console.error('Error deleting report:', error);
+        alert('Error deleting report. Please try again.');
+    }
 }
 
 // Show the join code input section
@@ -2220,8 +2435,8 @@ function validateJoinCode() {
     const enteredCode = joinCodeInput.value.trim();
 
     // Step 1: Scan for join codes
-    // Step 2: When user types in a join code, scan for any matches
-    const isValid = activeJoinCodes.includes(enteredCode);
+    // Step 2: When user types in a join code, scan for any matches (case-insensitive)
+    const isValid = activeJoinCodes.some(code => code.toLowerCase() === enteredCode.toLowerCase());
 
     // Step 3: Report to user if valid or invalid
     if (isValid) {
