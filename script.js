@@ -2250,7 +2250,7 @@ function addPlayerToList(username) {
         removeButton.className = 'player-remove-btn';
         removeButton.textContent = '×';
         removeButton.title = 'Remove player';
-        removeButton.addEventListener('click', () => removePlayerFromList(username, playerItem));
+        removeButton.addEventListener('click', () => confirmRemovePlayer(username, playerItem));
         playerItem.appendChild(removeButton);
     }
 
@@ -2270,6 +2270,104 @@ function removePlayerFromList(username, playerItem) {
     if (playerItem && playerItem.parentNode === playersList) {
         playersList.removeChild(playerItem);
     }
+}
+
+// Show confirmation dialog before removing a player
+function confirmRemovePlayer(username, playerItem) {
+    // Prevent removing the host
+    const hostUsername = currentUser ? currentUser.username : 'HOST';
+    if (username === hostUsername) {
+        alert('Cannot remove the host from the game');
+        return;
+    }
+    
+    // Create or get confirmation modal
+    let modalOverlay = document.getElementById('confirmation-modal-overlay');
+    if (!modalOverlay) {
+        modalOverlay = document.createElement('div');
+        modalOverlay.id = 'confirmation-modal-overlay';
+        modalOverlay.className = 'confirmation-modal-overlay hidden';
+        modalOverlay.innerHTML = `
+            <div class="confirmation-modal">
+                <h3>Confirm Removal</h3>
+                <p></p>
+                <div class="confirmation-buttons">
+                    <button class="confirm-yes-button">YES</button>
+                    <button class="confirm-no-button">NO</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalOverlay);
+        
+        // Add event listeners for buttons
+        const yesButton = modalOverlay.querySelector('.confirm-yes-button');
+        const noButton = modalOverlay.querySelector('.confirm-no-button');
+        const modalContent = modalOverlay.querySelector('.confirmation-modal');
+        const message = modalOverlay.querySelector('p');
+        
+        // Set the message text (safe from HTML injection)
+        message.textContent = `Just for confirmation are you sure you want to remove ${username}?`;
+        
+        // Close modal when clicking outside the modal content
+        modalOverlay.addEventListener('click', (e) => {
+            if (!modalContent.contains(e.target)) {
+                modalOverlay.classList.add('hidden');
+            }
+        });
+        
+        // Close modal with Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
+                modalOverlay.classList.add('hidden');
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        
+        // Store the escape handler on the modal for cleanup
+        modalOverlay._escapeHandler = handleEscape;
+        
+        yesButton.addEventListener('click', () => {
+            // Remove the player item from the DOM
+            if (playerItem && playerItem.parentNode === playersList) {
+                playersList.removeChild(playerItem);
+            }
+            modalOverlay.classList.add('hidden');
+        });
+        
+        noButton.addEventListener('click', () => {
+            modalOverlay.classList.add('hidden');
+        });
+    } else {
+        // Update the modal with current player name
+        const message = modalOverlay.querySelector('p');
+        if (message) {
+            message.textContent = `Just for confirmation are you sure you want to remove ${username}?`;
+        }
+        
+        // Update event listeners for buttons
+        const yesButton = modalOverlay.querySelector('.confirm-yes-button');
+        const noButton = modalOverlay.querySelector('.confirm-no-button');
+        
+        // Remove old listeners by cloning and replacing
+        const newYesButton = yesButton.cloneNode(true);
+        const newNoButton = noButton.cloneNode(true);
+        yesButton.parentNode.replaceChild(newYesButton, yesButton);
+        noButton.parentNode.replaceChild(newNoButton, noButton);
+        
+        newYesButton.addEventListener('click', () => {
+            if (playerItem && playerItem.parentNode === playersList) {
+                playersList.removeChild(playerItem);
+            }
+            modalOverlay.classList.add('hidden');
+        });
+        
+        newNoButton.addEventListener('click', () => {
+            modalOverlay.classList.add('hidden');
+        });
+    }
+    
+    // Show the modal
+    modalOverlay.classList.remove('hidden');
 }
 
 // Save a report to localStorage
