@@ -205,6 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Copy join code button functionality
+    copyJoinCodeButton.addEventListener('click', copyJoinCodeToClipboard);
+
     // Help Center functionality
     helpCenterButton.addEventListener('click', () => {
         startScreen.classList.remove('active');
@@ -2163,25 +2166,70 @@ function copyJoinCodeToClipboard() {
         return;
     }
     
-    // Use Clipboard API
-    navigator.clipboard.writeText(joinCode).then(() => {
-        // Visual feedback
+    // Function to show success feedback
+    const showSuccess = () => {
         const originalText = copyButton.textContent;
+        console.log('Join code copied to clipboard:', joinCode);
         copyButton.textContent = 'COPIED!';
         copyButton.classList.add('copied');
         
-        // Reset after 2 seconds
         setTimeout(() => {
             copyButton.textContent = originalText;
             copyButton.classList.remove('copied');
         }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy join code:', err);
+    };
+    
+    // Function to show error feedback
+    const showError = (message) => {
+        console.error('Failed to copy join code:', message);
         copyButton.textContent = 'FAILED';
         setTimeout(() => {
             copyButton.textContent = 'COPY CODE';
         }, 2000);
-    });
+    };
+    
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        console.log('Using Clipboard API for join code:', joinCode);
+        navigator.clipboard.writeText(joinCode).then(() => {
+            showSuccess();
+        }).catch(err => {
+            // If Clipboard API fails, fall back to execCommand
+            fallbackCopy(joinCode, showSuccess, showError);
+        });
+    } else {
+        // No Clipboard API, use fallback directly
+        fallbackCopy(joinCode, showSuccess, showError);
+    }
+    
+    // Fallback method using execCommand
+    function fallbackCopy(text, successCallback, errorCallback) {
+        try {
+            // Create a temporary textarea element
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.top = '-1000px';
+            textarea.style.left = '-1000px';
+            document.body.appendChild(textarea);
+            
+            // Select and copy
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // For mobile devices
+            
+            console.log('Using fallback copy method (execCommand) for join code:', text);
+            const success = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            if (success) {
+                successCallback();
+            } else {
+                errorCallback('execCommand copy failed');
+            }
+        } catch (err) {
+            errorCallback(err.message || 'Unknown error');
+        }
+    }
 }
 
 // Add a player to the players list on the host screen
@@ -2351,10 +2399,7 @@ function loadReports() {
             button.addEventListener('click', function() {
                 const reportId = parseInt(this.getAttribute('data-id'));
                 deleteReport(reportId);
-    });
-
-    // Copy join code button functionality
-    copyJoinCodeButton.addEventListener('click', copyJoinCodeToClipboard);
+            });
         });
         
         console.log('Reports displayed successfully');
