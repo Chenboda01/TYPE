@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     joinCodeSubmit.addEventListener('click', validateJoinCode);
 
     // Host screen functionality
-    startGameButton.addEventListener('click', startGame);
+
     endGameButton.addEventListener('click', () => {
         // Return to start screen when ending the game
         hostScreen.classList.remove('active');
@@ -360,11 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToGameButton = document.getElementById('back-to-game');
     const logoutButton = document.getElementById('logout-button');
 
-    // Authentication controls
-    loginButton.addEventListener('click', handleLogin);
-    signupButton.addEventListener('click', handleSignup);
-    showSignupLink.addEventListener('click', showSignupForm);
-    showLoginLink.addEventListener('click', showLoginForm);
+
 
     // Profile controls
     viewProfileButton.addEventListener('click', showProfileScreen);
@@ -1530,10 +1526,7 @@ function endGame() {
         document.getElementById('best-wpm-final').textContent = currentUser.bestWpm || 0;
     }
 
-    // If player was in the shop, return to game over screen
-    if (gameState === 'shop') {
-        storeScreen.classList.remove('active');
-    }
+
 
     // Reset global state variables after game ends
     window.previousGameState = null;
@@ -1943,8 +1936,10 @@ function togglePause() {
             // Switch back to game screen
             storeScreen.classList.remove('active');
             gameScreen.classList.add('active');
+            gameState = 'playing';
             // Don't change the pause state here, just return to the game screen
             // The game should remain in whatever pause state it was in before
+            return;
         } else {
             // For any other state (like hosting), just return without doing anything
             return;
