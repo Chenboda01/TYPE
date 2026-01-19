@@ -429,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isGamePaused = false;
 
                 // Resume the game
+                clearInterval(gameInterval);
                 gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
 
                 // Restart asteroid spawning if needed
@@ -929,6 +930,7 @@ function startGame() {
             isGamePaused = false;
 
             // Resume the game
+            clearInterval(gameInterval);
             gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
 
             // Restart asteroid spawning if needed
@@ -1070,8 +1072,8 @@ function startGame() {
 
     // Add a small delay before starting the game to ensure all elements are properly initialized
     setTimeout(() => {
-        // Ensure the game is properly initialized
-        if (gameState === 'playing') {
+        // Ensure the game is properly initialized and not paused
+        if (gameState === 'playing' && !isGamePaused) {
             // Start the game loop again to ensure it's running
             clearInterval(gameInterval);
             gameInterval = setInterval(updateGame, 1000 / 60);
@@ -1987,6 +1989,7 @@ function togglePause() {
         }
 
         // Resume the game
+        clearInterval(gameInterval);
         gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
 
         // Restart asteroid spawning if needed
@@ -2046,16 +2049,16 @@ function showHostScreen() {
         do {
             code = generateJoinCode();
             attempts++;
-        } while (activeJoinCodes.some(c => c.toLowerCase() === code.toLowerCase()) && attempts < maxAttempts);
+        } while (isDuplicateCode(code) && attempts < maxAttempts);
         
         // If still duplicate after max attempts, append suffix
-        if (activeJoinCodes.some(c => c.toLowerCase() === code.toLowerCase())) {
+        if (isDuplicateCode(code)) {
             let suffix = 1;
             let uniqueCode = '';
             do {
                 uniqueCode = code + '_' + suffix.toString().padStart(2, '0');
                 suffix++;
-            } while (activeJoinCodes.some(c => c.toLowerCase() === uniqueCode.toLowerCase()) && suffix <= 99);
+            } while (isDuplicateCode(uniqueCode) && suffix <= 99);
             code = uniqueCode;
         }
         
@@ -2137,6 +2140,11 @@ function generateJoinCode() {
     }
     
     return code;
+}
+
+// Check if a code is duplicate (case-insensitive)
+function isDuplicateCode(code) {
+    return activeJoinCodes.some(c => c.toLowerCase() === code.toLowerCase());
 }
 
 // Copy join code to clipboard with visual feedback
