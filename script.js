@@ -2257,18 +2257,12 @@ function addPlayerToList(username) {
     playersList.appendChild(playerItem);
 }
 
-// Remove a player from the players list on the host screen
-function removePlayerFromList(username, playerItem) {
-    // Prevent removing the host
-    const hostUsername = currentUser ? currentUser.username : 'HOST';
-    if (username === hostUsername) {
-        alert('Cannot remove the host from the game');
-        return;
-    }
-    
-    // Remove the player item from the DOM
-    if (playerItem && playerItem.parentNode === playersList) {
-        playersList.removeChild(playerItem);
+
+
+// Helper function to hide the modal
+function hideModal(modalOverlay) {
+    if (modalOverlay) {
+        modalOverlay.classList.add('hidden');
     }
 }
 
@@ -2298,77 +2292,71 @@ function confirmRemovePlayer(username, playerItem) {
             </div>
         `;
         document.body.appendChild(modalOverlay);
-        
-        // Add event listeners for buttons
-        const yesButton = modalOverlay.querySelector('.confirm-yes-button');
-        const noButton = modalOverlay.querySelector('.confirm-no-button');
-        const modalContent = modalOverlay.querySelector('.confirmation-modal');
-        const message = modalOverlay.querySelector('p');
-        
-        // Set the message text (safe from HTML injection)
+    }
+    
+    // Get modal elements
+    const message = modalOverlay.querySelector('p');
+    const yesButton = modalOverlay.querySelector('.confirm-yes-button');
+    const noButton = modalOverlay.querySelector('.confirm-no-button');
+    const modalContent = modalOverlay.querySelector('.confirmation-modal');
+    
+    // Update message with player name
+    if (message) {
         message.textContent = `Just for confirmation are you sure you want to remove ${username}?`;
-        
-        // Close modal when clicking outside the modal content
-        modalOverlay.addEventListener('click', (e) => {
-            if (!modalContent.contains(e.target)) {
-                modalOverlay.classList.add('hidden');
-            }
-        });
-        
-        // Close modal with Escape key
-        const handleEscape = (e) => {
-            if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
-                modalOverlay.classList.add('hidden');
-            }
-        };
-        document.addEventListener('keydown', handleEscape);
-        
-        // Store the escape handler on the modal for cleanup
-        modalOverlay._escapeHandler = handleEscape;
-        
-        yesButton.addEventListener('click', () => {
-            // Remove the player item from the DOM
-            if (playerItem && playerItem.parentNode === playersList) {
-                playersList.removeChild(playerItem);
-            }
-            modalOverlay.classList.add('hidden');
-        });
-        
-        noButton.addEventListener('click', () => {
-            modalOverlay.classList.add('hidden');
-        });
-    } else {
-        // Update the modal with current player name
-        const message = modalOverlay.querySelector('p');
-        if (message) {
-            message.textContent = `Just for confirmation are you sure you want to remove ${username}?`;
-        }
-        
-        // Update event listeners for buttons
-        const yesButton = modalOverlay.querySelector('.confirm-yes-button');
-        const noButton = modalOverlay.querySelector('.confirm-no-button');
-        
-        // Remove old listeners by cloning and replacing
+    }
+    
+    // Remove any existing click listeners by cloning buttons
+    if (yesButton && noButton) {
         const newYesButton = yesButton.cloneNode(true);
         const newNoButton = noButton.cloneNode(true);
         yesButton.parentNode.replaceChild(newYesButton, yesButton);
         noButton.parentNode.replaceChild(newNoButton, noButton);
         
+        // Add new event listeners
         newYesButton.addEventListener('click', () => {
+            // Remove the player item from the DOM
             if (playerItem && playerItem.parentNode === playersList) {
                 playersList.removeChild(playerItem);
             }
-            modalOverlay.classList.add('hidden');
+            hideModal(modalOverlay);
         });
         
         newNoButton.addEventListener('click', () => {
-            modalOverlay.classList.add('hidden');
+            hideModal(modalOverlay);
         });
+    }
+    
+    // Setup modal close handlers (only once)
+    if (!modalOverlay._initialized) {
+        const modalContent = modalOverlay.querySelector('.confirmation-modal');
+        if (modalContent) {
+            // Close modal when clicking outside the modal content
+            modalOverlay.addEventListener('click', (e) => {
+                if (!modalContent.contains(e.target)) {
+                    hideModal(modalOverlay);
+                }
+            });
+        }
+        
+        // Close modal with Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
+                hideModal(modalOverlay);
+            }
+        };
+        
+        // Store handler reference for cleanup
+        modalOverlay._escapeHandler = handleEscape;
+        document.addEventListener('keydown', handleEscape);
+        
+        modalOverlay._initialized = true;
     }
     
     // Show the modal
     modalOverlay.classList.remove('hidden');
 }
+
+
 
 // Save a report to localStorage
 function saveReport(report) {
