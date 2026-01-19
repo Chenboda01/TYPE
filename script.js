@@ -1311,6 +1311,7 @@ function destroyAsteroid(index) {
 
 // Update game state
 function updateGame() {
+    console.log('updateGame called, gameState:', gameState, 'isGamePaused:', isGamePaused);
     if (gameState !== 'playing' || isGamePaused) return;
 
     // Calculate spaceship position reliably
@@ -1931,6 +1932,7 @@ function updateVolume() {
 
 // Toggle game pause/resume
 function togglePause() {
+    console.log('togglePause called, gameState:', gameState, 'isGamePaused:', isGamePaused, 'gameInterval:', gameInterval);
     // Only allow pausing/resuming during gameplay
     if (gameState !== 'playing') {
         // If we're in the shop state, we should return to the game first
@@ -1954,6 +1956,7 @@ function togglePause() {
     const pauseOverlay = document.getElementById('pause-overlay');
 
     if (isGamePaused) {
+        console.log('Pausing game, clearing intervals');
         // Pause the game
         clearInterval(gameInterval);
         if (spawnInterval) {
@@ -1982,6 +1985,7 @@ function togglePause() {
             backgroundMusic.pause();
         }
     } else {
+        console.log('Resuming game, creating new intervals');
         // Calculate how long the game was paused
         if (lastPauseTime > 0) {
             pausedTime += Date.now() - lastPauseTime;
@@ -1991,6 +1995,12 @@ function togglePause() {
         // Resume the game
         clearInterval(gameInterval);
         gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
+        console.log('New gameInterval created:', gameInterval);
+        
+        // Ensure word input is focused
+        if (wordInput) {
+            wordInput.focus();
+        }
 
         // Restart asteroid spawning if needed
         if (spawnInterval) {
