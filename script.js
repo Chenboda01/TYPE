@@ -1,4 +1,4 @@
-// Game variables
+console.log('script.js loading'); // Game variables
 let gameState = 'start'; // 'start', 'playing', 'gameOver', 'help', 'hosting'
 let score = 0;
 let level = 1;
@@ -72,7 +72,9 @@ let currentJoinCode = null; // Store the current join code for this session
 
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
-    const startBtn = document.getElementById('start-button');
+    try {
+        console.log('DOMContentLoaded running');
+        const startBtn = document.getElementById('start-button');
     const restartBtn = document.getElementById('restart-button');
     const wordInput = document.getElementById('word-input');
     const competeFriendsBtn = document.getElementById('compete-friends-button');
@@ -116,15 +118,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const volumeSlider = document.getElementById('volume-slider');
     const pauseButton = document.getElementById('pause-button');
 
-    startBtn.addEventListener('click', startGame);
-    restartBtn.addEventListener('click', startGame);
-    wordInput.addEventListener('keydown', handleInput);
+    if (startBtn) startBtn.addEventListener('click', startGame); else console.warn('start-button element not found');
+    if (restartBtn) restartBtn.addEventListener('click', startGame); else console.warn('restart-button element not found');
+    if (wordInput) wordInput.addEventListener('keydown', handleInput); else console.warn('word-input element not found');
 
     // Main menu shop button
     const shopMainMenuButton = document.getElementById('shop-button-main-menu');
     shopMainMenuButton.addEventListener('click', () => {
+        console.log('Main menu SHOP button clicked, currentUser:', currentUser);
         // If user is not logged in, show auth screen first
         if (!currentUser) {
+            console.log('No user logged in, showing auth screen');
             startScreen.classList.remove('active');
             document.getElementById('auth-screen').classList.add('active');
             gameState = 'start';
@@ -142,6 +146,31 @@ document.addEventListener('DOMContentLoaded', () => {
         showStoreScreen();
     });
 
+    // View profile button on start screen
+    const viewProfileStartButton = document.getElementById('view-profile-start');
+    if (viewProfileStartButton) {
+        viewProfileStartButton.addEventListener('click', () => {
+            console.log('View Profile button clicked from start screen');
+            // If user is not logged in, show auth screen first
+            if (!currentUser) {
+                console.log('No current user, redirecting to auth');
+                startScreen.classList.remove('active');
+                document.getElementById('auth-screen').classList.add('active');
+                gameState = 'start';
+                return;
+            }
+
+            // Store the previous game state to return to the start screen
+            window.previousGameState = 'start';
+
+            // Navigate to profile screen
+            console.log('Showing profile screen for user:', currentUser.username);
+            startScreen.classList.remove('active');
+            showProfileScreen();
+        });
+    } else {
+        console.error('View Profile Start button not found!');
+    }
 
     // Multiplayer functionality
     competeFriendsBtn.addEventListener('click', showHostScreen);
@@ -317,11 +346,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Music controls
-    musicToggle.addEventListener('click', toggleMusic);
-    volumeSlider.addEventListener('input', updateVolume);
+    if (musicToggle) musicToggle.addEventListener('click', toggleMusic); else console.warn('music-toggle element not found');
+    if (volumeSlider) volumeSlider.addEventListener('input', updateVolume); else console.warn('volume-slider element not found');
 
     // Game pause/resume controls
-    pauseButton.addEventListener('click', togglePause);
+    if (pauseButton) pauseButton.addEventListener('click', togglePause); else console.warn('pause-button element not found');
 
     // Initialize authentication elements
     const authScreen = document.getElementById('auth-screen');
@@ -338,10 +367,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmPassword = document.getElementById('confirm-password');
 
     // Add event listeners for authentication elements
-    loginButton.addEventListener('click', handleLogin);
-    signupButton.addEventListener('click', handleSignup);
-    showSignupLink.addEventListener('click', showSignupForm);
-    showLoginLink.addEventListener('click', showLoginForm);
+    if (loginButton) loginButton.addEventListener('click', handleLogin); else console.warn('login-button element not found');
+    if (signupButton) signupButton.addEventListener('click', handleSignup); else console.warn('signup-button element not found');
+    if (showSignupLink) showSignupLink.addEventListener('click', showSignupForm); else console.warn('show-signup-link element not found');
+    if (showLoginLink) showLoginLink.addEventListener('click', showLoginForm); else console.warn('show-login-link element not found');
 
     // Add form submission handlers to prevent default behavior
     loginForm.addEventListener('submit', (e) => {
@@ -377,7 +406,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToGameFromStoreButton = document.getElementById('back-to-game-from-store');
     const buyButtons = document.querySelectorAll('.buy-button');
 
-    viewStoreButton.addEventListener('click', showStoreScreen);
+    viewStoreButton.addEventListener('click', () => {
+        console.log('View Store button clicked from profile screen');
+        showStoreScreen();
+    });
     backToProfileButton.addEventListener('click', () => {
         storeScreen.classList.remove('active');
         profileScreen.classList.add('active');
@@ -501,23 +533,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add shop button event listener
     const shopButton = document.getElementById('shop-button');
     shopButton.addEventListener('click', () => {
+        console.log('In-game shop button clicked, gameState:', gameState, 'currentUser:', currentUser);
         // If on start screen or game over screen, go to profile first, then shop
         if (gameState === 'start' || gameState === 'gameOver') {
             if (currentUser) {
                 // Store the previous game state to return to it later
                 window.previousGameState = gameState;
-                // Switch to profile screen first, then shop
+                // Hide current screen (start or game over)
                 if (gameState === 'start') {
                     startScreen.classList.remove('active');
-                    document.getElementById('profile-screen').classList.add('active');
                 } else {
                     gameOverScreen.classList.remove('active');
-                    document.getElementById('profile-screen').classList.add('active');
                 }
-                // Then switch to store
-                document.getElementById('profile-screen').classList.remove('active');
-                storeScreen.classList.add('active');
-                gameState = 'shop';
+                // Show store screen (will set up buy button listeners)
+                showStoreScreen();
+                return; // Skip duplicate code below
+            } else {
+                // User not logged in, show auth screen
+                console.log('User not logged in, showing auth screen');
+                if (gameState === 'start') {
+                    startScreen.classList.remove('active');
+                } else {
+                    gameOverScreen.classList.remove('active');
+                }
+                document.getElementById('auth-screen').classList.add('active');
+                gameState = 'start';
+                return;
             }
         } else {
             // If in gameplay, handle the shop access
@@ -568,18 +609,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.previousGameState = gameState;
             }
 
-            // Show store screen
-            gameScreen.classList.remove('active');
-            storeScreen.classList.add('active');
-            gameState = 'shop';
+            // Show store screen (will set up buy button listeners and update powerup counts)
+            showStoreScreen();
+            return; // Skip duplicate code below
         }
 
-        // Ensure the store screen is properly displayed
-        storeScreen.classList.add('active');
-        gameScreen.classList.remove('active');
 
-        // Update power-up counts in store
-        updatePowerupCounts();
     });
 
     // Add resume button event listener
@@ -621,10 +656,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
         showStartScreen();
+    } else {
+        // Create a guest user for immediate play
+        currentUser = {
+            username: 'Guest',
+            bestScore: 0,
+            bestWpm: 0,
+            shieldCount: 0,
+            doubleDamageCount: 0,
+            slowMotionCount: 0,
+            coins: 0
+        };
+        console.log('Created guest user:', currentUser);
+        showStartScreen();
     }
 
     // Check for updates
     checkForUpdates();
+    } catch (error) {
+        console.error('DOMContentLoaded error:', error);
+    }
 });
 
 // Function to check for updates
@@ -1581,11 +1632,19 @@ function updateUserInStorage() {
 
 // Show profile screen
 function showProfileScreen() {
-    gameOverScreen.classList.remove('active');
+    console.log('showProfileScreen called, currentUser:', currentUser ? currentUser.username : 'null');
+    
+    // Hide all screens first
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    
     profileScreen.classList.add('active');
+    console.log('Profile screen activated');
 
     // Update profile screen with user data
     if (currentUser) {
+        console.log('Updating profile data for user:', currentUser.username);
         document.getElementById('profile-username').textContent = currentUser.username;
         document.getElementById('profile-best-score').textContent = currentUser.bestScore || 0;
         document.getElementById('profile-best-wpm').textContent = currentUser.bestWpm || 0;
@@ -1598,6 +1657,8 @@ function showProfileScreen() {
 
         // Update power-up counts
         updatePowerupCounts();
+    } else {
+        console.log('No current user found, profile screen will be empty');
     }
 }
 
@@ -1717,10 +1778,27 @@ function checkPowerupTimers() {
 
 // Show store screen
 function showStoreScreen() {
+    console.log('showStoreScreen called, gameState:', gameState);
+    console.log('storeScreen element exists:', !!storeScreen);
+    
     // Store the previous game state to return to it later
     window.previousGameState = gameState;
-    profileScreen.classList.remove('active');
-    storeScreen.classList.add('active');
+    
+    // Hide all screens first
+    const screens = document.querySelectorAll('.screen');
+    console.log('Hiding', screens.length, 'screens');
+    screens.forEach(screen => {
+        screen.classList.remove('active');
+    });
+    
+    if (storeScreen) {
+        storeScreen.classList.add('active');
+        console.log('Store screen active class added');
+    } else {
+        console.error('storeScreen not found!');
+        return;
+    }
+    
     gameState = 'shop';
 
     // Update powerup counts in the store
