@@ -827,7 +827,7 @@ function updateToVersion2() {
         progressText.textContent = '0%';
     }
     if (countdownText) {
-        countdownText.textContent = `${secondsRemaining} seconds remaining`;
+        countdownText.textContent = `${secondsRemaining} second${secondsRemaining !== 1 ? 's' : ''} remaining`;
     }
 
     // Start progress interval - update every 1000ms (1 second)
