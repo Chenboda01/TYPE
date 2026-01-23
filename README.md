@@ -65,9 +65,11 @@ The game now includes multiplayer functionality with join codes:
 - Valid join codes will start the game after a 3-2-1 countdown
 - Invalid join codes will display an error message
 
-## Updates section:
+## Updates Section
 
-The game now includes updates section with version 2.0:
+The game now includes a dedicated updates section accessible from the main menu:
 
-- Click "Updates" to view the latest version updates and patch notes
+- Click "UPDATES" button to view the latest version updates and patch notes
+- See your current version and check for updates manually
 - Click "Update now" or "Update later" to choose when to apply updates
+- Automatic update notifications appear when a new version is available

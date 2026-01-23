@@ -62,6 +62,7 @@
                 <button id="compete-friends-button">COMPETE WITH FRIENDS!</button>
                 <button id="enter-code-button">ENTER JOIN CODE FOR GAME SIMULATION</button>
                 <button id="help-center-button">HELP CENTER</button>
+                <button id="updates-button">UPDATES</button>
             </div>
             <div id="difficulty-selection">
                 <label for="difficulty">Difficulty:</label>
@@ -206,6 +207,13 @@
                     <div class="stat-card">
                         <h4>Games Played</h4>
                         <p id="profile-games-played">0</p>
+                    </div>
+                </div>
+
+                <div class="score-history">
+                    <h4>Recent Scores</h4>
+                    <div id="score-history-list">
+                        <!-- Score history will be dynamically added here -->
                     </div>
                 </div>
 
@@ -388,6 +396,42 @@
                     <button id="back-to-game-from-store">Back to Game</button>
                 </div>
             </div>
+        </div>
+
+        <!-- Updates Screen -->
+        <div id="updates-screen" class="screen">
+            <div class="updates-header">
+                <h2>UPDATES</h2>
+                <button id="updates-back-button" class="back-btn">BACK</button>
+            </div>
+            <div class="updates-content">
+                <div class="current-version">
+                    <h3>Current Version: <span id="current-version-display">1.0</span></h3>
+                </div>
+                <div class="update-notes">
+                    <h3>Latest Updates</h3>
+                    <div id="update-notes-list">
+                        <div class="update-note">
+                            <h4>Version 2.0</h4>
+                            <p>Exciting new features and improvements!</p>
+                            <ul>
+                                <li>Multiplayer functionality with join codes</li>
+                                <li>Power-up shop system</li>
+                                <li>Enhanced asteroid visuals</li>
+                                <li>Improved performance</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="update-actions">
+                    <button id="check-updates-button">CHECK FOR UPDATES</button>
+                    <div id="update-available-section" class="hidden">
+                        <p>A new update is available!</p>
+                        <button id="update-now-btn-screen">UPDATE NOW</button>
+                        <button id="update-later-btn-screen">UPDATE LATER</button>
+                </div>
+            </div>
+        </div>
             </div>
         </div>
 
@@ -399,6 +443,7 @@
             <div id="progress-bar" class="progress-bar"></div>
         </div>
         <p id="progress-text">0%</p>
+        <p id="countdown-text">100 seconds remaining</p>
         <button id="loading-back-button" class="back-btn">BACK TO HOME</button>
     </div>
 

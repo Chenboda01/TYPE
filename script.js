@@ -1,4 +1,4 @@
-console.log('script.js loading'); // Game variables
+// Game variables
 let gameState = 'start'; // 'start', 'playing', 'gameOver', 'help', 'hosting'
 let score = 0;
 let level = 1;
@@ -27,24 +27,24 @@ let activePowerups = {
 let powerupSpawnInterval;
 
 // DOM elements
-const startScreen = document.getElementById('start-screen');
-const gameScreen = document.getElementById('game-screen');
-const gameOverScreen = document.getElementById('game-over-screen');
-const startButton = document.getElementById('start-button');
-const restartButton = document.getElementById('restart-button');
-const scoreValue = document.getElementById('score-value');
-const levelValue = document.getElementById('level-value');
-const wpmValue = document.getElementById('wpm-value');
-const accuracyValue = document.getElementById('accuracy-value');
-const finalScore = document.getElementById('final-score');
-const finalLevel = document.getElementById('final-level');
-const peakWpm = document.getElementById('peak-wpm');
-const finalAccuracy = document.getElementById('final-accuracy');
-const wordInput = document.getElementById('word-input');
-const asteroidField = document.getElementById('asteroid-field');
-const bulletContainer = document.getElementById('bullet-container');
-const powerupContainer = document.getElementById('powerup-container');
-const storeScreen = document.getElementById('store-screen');
+let startScreen;
+let gameScreen;
+let gameOverScreen;
+let startButton;
+let restartButton;
+let scoreValue;
+let levelValue;
+let wpmValue;
+let accuracyValue;
+let finalScore;
+let finalLevel;
+let peakWpm;
+let finalAccuracy;
+let wordInput;
+let asteroidField;
+let bulletContainer;
+let powerupContainer;
+let storeScreen;
 
 let livesContainer; // Declare livesContainer variable to be initialized after DOM load
 let playersList;
@@ -52,6 +52,7 @@ let adminPanel;
 let reportsList;
 let hostScreen;
 let helpCenterScreen;
+let updatesScreen;
 
 // Audio elements
 let backgroundMusic;
@@ -73,10 +74,9 @@ let currentJoinCode = null; // Store the current join code for this session
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        console.log('DOMContentLoaded running');
-        const startBtn = document.getElementById('start-button');
+        console.log('DOMContentLoaded: Initializing game...');
+    const startBtn = document.getElementById('start-button');
     const restartBtn = document.getElementById('restart-button');
-    const wordInput = document.getElementById('word-input');
     const competeFriendsBtn = document.getElementById('compete-friends-button');
     const enterCodeBtn = document.getElementById('enter-code-button');
     const joinCodeSection = document.getElementById('join-code-section');
@@ -96,8 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Help Center elements
     const helpCenterButton = document.getElementById('help-center-button');
+    const updatesButton = document.getElementById('updates-button');
     helpCenterScreen = document.getElementById('help-center-screen');
+    updatesScreen = document.getElementById('updates-screen');
     const helpCenterBackButton = document.getElementById('help-center-back-button');
+    const updatesBackButton = document.getElementById('updates-back-button');
+    const checkUpdatesButton = document.getElementById('check-updates-button');
+    const updateNowBtnScreen = document.getElementById('update-now-btn-screen');
+    const updateLaterBtnScreen = document.getElementById('update-later-btn-screen');
     const reportForm = document.getElementById('report-form');
     const reportType = document.getElementById('report-type');
     const reportDescription = document.getElementById('report-description');
@@ -112,23 +118,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize livesContainer after DOM has loaded
     livesContainer = document.getElementById('lives-container');
+    startScreen = document.getElementById('start-screen');
+    gameScreen = document.getElementById('game-screen');
+    gameOverScreen = document.getElementById('game-over-screen');
+    startButton = document.getElementById('start-button');
+    restartButton = document.getElementById('restart-button');
+    scoreValue = document.getElementById('score-value');
+    levelValue = document.getElementById('level-value');
+    wpmValue = document.getElementById('wpm-value');
+    accuracyValue = document.getElementById('accuracy-value');
+    finalScore = document.getElementById('final-score');
+    finalLevel = document.getElementById('final-level');
+    peakWpm = document.getElementById('peak-wpm');
+    finalAccuracy = document.getElementById('final-accuracy');
+    asteroidField = document.getElementById('asteroid-field');
+    bulletContainer = document.getElementById('bullet-container');
+    powerupContainer = document.getElementById('powerup-container');
+    storeScreen = document.getElementById('store-screen');
+    wordInput = document.getElementById('word-input');
+
+    // Validate critical DOM elements
+    const requiredElements = {
+        startScreen, gameScreen, gameOverScreen, wordInput, asteroidField,
+        bulletContainer, powerupContainer, storeScreen, livesContainer
+    };
+    for (const [name, element] of Object.entries(requiredElements)) {
+        if (!element) {
+            console.error(`Critical DOM element not found: ${name}`);
+        }
+    }
+    console.log('DOM elements assigned successfully');
 
     // Initialize music elements
     const musicToggle = document.getElementById('music-toggle');
     const volumeSlider = document.getElementById('volume-slider');
     const pauseButton = document.getElementById('pause-button');
 
-    if (startBtn) startBtn.addEventListener('click', startGame); else console.warn('start-button element not found');
-    if (restartBtn) restartBtn.addEventListener('click', startGame); else console.warn('restart-button element not found');
-    if (wordInput) wordInput.addEventListener('keydown', handleInput); else console.warn('word-input element not found');
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+    wordInput.addEventListener('keydown', handleInput);
 
     // Main menu shop button
     const shopMainMenuButton = document.getElementById('shop-button-main-menu');
     shopMainMenuButton.addEventListener('click', () => {
-        console.log('Main menu SHOP button clicked, currentUser:', currentUser);
         // If user is not logged in, show auth screen first
         if (!currentUser) {
-            console.log('No user logged in, showing auth screen');
             startScreen.classList.remove('active');
             document.getElementById('auth-screen').classList.add('active');
             gameState = 'start';
@@ -146,31 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showStoreScreen();
     });
 
-    // View profile button on start screen
-    const viewProfileStartButton = document.getElementById('view-profile-start');
-    if (viewProfileStartButton) {
-        viewProfileStartButton.addEventListener('click', () => {
-            console.log('View Profile button clicked from start screen');
-            // If user is not logged in, show auth screen first
-            if (!currentUser) {
-                console.log('No current user, redirecting to auth');
-                startScreen.classList.remove('active');
-                document.getElementById('auth-screen').classList.add('active');
-                gameState = 'start';
-                return;
-            }
-
-            // Store the previous game state to return to the start screen
-            window.previousGameState = 'start';
-
-            // Navigate to profile screen
-            console.log('Showing profile screen for user:', currentUser.username);
-            startScreen.classList.remove('active');
-            showProfileScreen();
-        });
-    } else {
-        console.error('View Profile Start button not found!');
-    }
 
     // Multiplayer functionality
     competeFriendsBtn.addEventListener('click', showHostScreen);
@@ -249,6 +258,35 @@ document.addEventListener('DOMContentLoaded', () => {
         startScreen.classList.add('active');
         gameState = 'start';
     });
+
+    // Updates functionality
+    updatesButton.addEventListener('click', () => {
+        startScreen.classList.remove('active');
+        updatesScreen.classList.add('active');
+        gameState = 'updates';
+        // Update version display
+        updateVersionDisplay();
+        // Check for updates automatically
+        checkForUpdates();
+    });
+
+    updatesBackButton.addEventListener('click', () => {
+        updatesScreen.classList.remove('active');
+        startScreen.classList.add('active');
+        gameState = 'start';
+    });
+
+    checkUpdatesButton.addEventListener('click', checkForUpdates);
+
+    if (updateNowBtnScreen) {
+        updateNowBtnScreen.addEventListener('click', updateToVersion2);
+    }
+
+    if (updateLaterBtnScreen) {
+        updateLaterBtnScreen.addEventListener('click', () => {
+            document.getElementById('update-available-section').classList.add('hidden');
+        });
+    }
 
     // Report form submission
     reportForm.addEventListener('submit', (e) => {
@@ -331,6 +369,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.hostScreenTimer) {
             clearTimeout(window.hostScreenTimer);
         }
+        // Clear update progress interval if it exists
+        if (window.updateProgressInterval) {
+            clearInterval(window.updateProgressInterval);
+            window.updateProgressInterval = null;
+        }
 
         // Hide the loading indicator
         const loadingIndicator = document.getElementById('loading-indicator');
@@ -346,11 +389,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Music controls
-    if (musicToggle) musicToggle.addEventListener('click', toggleMusic); else console.warn('music-toggle element not found');
-    if (volumeSlider) volumeSlider.addEventListener('input', updateVolume); else console.warn('volume-slider element not found');
+    musicToggle.addEventListener('click', toggleMusic);
+    volumeSlider.addEventListener('input', updateVolume);
 
     // Game pause/resume controls
-    if (pauseButton) pauseButton.addEventListener('click', togglePause); else console.warn('pause-button element not found');
+    pauseButton.addEventListener('click', togglePause);
 
     // Initialize authentication elements
     const authScreen = document.getElementById('auth-screen');
@@ -367,10 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmPassword = document.getElementById('confirm-password');
 
     // Add event listeners for authentication elements
-    if (loginButton) loginButton.addEventListener('click', handleLogin); else console.warn('login-button element not found');
-    if (signupButton) signupButton.addEventListener('click', handleSignup); else console.warn('signup-button element not found');
-    if (showSignupLink) showSignupLink.addEventListener('click', showSignupForm); else console.warn('show-signup-link element not found');
-    if (showLoginLink) showLoginLink.addEventListener('click', showLoginForm); else console.warn('show-login-link element not found');
+    loginButton.addEventListener('click', handleLogin);
+    signupButton.addEventListener('click', handleSignup);
+    showSignupLink.addEventListener('click', showSignupForm);
+    showLoginLink.addEventListener('click', showLoginForm);
 
     // Add form submission handlers to prevent default behavior
     loginForm.addEventListener('submit', (e) => {
@@ -381,6 +424,17 @@ document.addEventListener('DOMContentLoaded', () => {
     signupForm.addEventListener('submit', (e) => {
         e.preventDefault();
         handleSignup();
+    });
+
+    // Logo click handlers for fullscreen viewing
+    const authLogos = document.querySelectorAll('.auth-logo');
+    authLogos.forEach(logo => {
+        logo.addEventListener('click', (e) => {
+            e.preventDefault();
+            const imageSrc = logo.getAttribute('src');
+            const altText = logo.getAttribute('alt') || logo.getAttribute('title') || 'Logo';
+            showImageModal(imageSrc, altText);
+        });
     });
 
     // Profile screen elements
@@ -406,10 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToGameFromStoreButton = document.getElementById('back-to-game-from-store');
     const buyButtons = document.querySelectorAll('.buy-button');
 
-    viewStoreButton.addEventListener('click', () => {
-        console.log('View Store button clicked from profile screen');
-        showStoreScreen();
-    });
+    viewStoreButton.addEventListener('click', showStoreScreen);
     backToProfileButton.addEventListener('click', () => {
         storeScreen.classList.remove('active');
         profileScreen.classList.add('active');
@@ -533,32 +584,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add shop button event listener
     const shopButton = document.getElementById('shop-button');
     shopButton.addEventListener('click', () => {
-        console.log('In-game shop button clicked, gameState:', gameState, 'currentUser:', currentUser);
         // If on start screen or game over screen, go to profile first, then shop
         if (gameState === 'start' || gameState === 'gameOver') {
             if (currentUser) {
                 // Store the previous game state to return to it later
                 window.previousGameState = gameState;
-                // Hide current screen (start or game over)
+                // Switch to profile screen first, then shop
                 if (gameState === 'start') {
                     startScreen.classList.remove('active');
+                    document.getElementById('profile-screen').classList.add('active');
                 } else {
                     gameOverScreen.classList.remove('active');
+                    document.getElementById('profile-screen').classList.add('active');
                 }
-                // Show store screen (will set up buy button listeners)
-                showStoreScreen();
-                return; // Skip duplicate code below
-            } else {
-                // User not logged in, show auth screen
-                console.log('User not logged in, showing auth screen');
-                if (gameState === 'start') {
-                    startScreen.classList.remove('active');
-                } else {
-                    gameOverScreen.classList.remove('active');
-                }
-                document.getElementById('auth-screen').classList.add('active');
-                gameState = 'start';
-                return;
+                // Then switch to store
+                document.getElementById('profile-screen').classList.remove('active');
+                storeScreen.classList.add('active');
+                gameState = 'shop';
             }
         } else {
             // If in gameplay, handle the shop access
@@ -609,12 +651,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.previousGameState = gameState;
             }
 
-            // Show store screen (will set up buy button listeners and update powerup counts)
-            showStoreScreen();
-            return; // Skip duplicate code below
+            // Show store screen
+            gameScreen.classList.remove('active');
+            storeScreen.classList.add('active');
+            gameState = 'shop';
         }
 
+        // Ensure the store screen is properly displayed
+        storeScreen.classList.add('active');
+        gameScreen.classList.remove('active');
 
+        // Update power-up counts in store
+        updatePowerupCounts();
     });
 
     // Add resume button event listener
@@ -651,31 +699,26 @@ document.addEventListener('DOMContentLoaded', () => {
     window.previousGameState = null;
     window.wasGamePausedWhenGoingToShop = false;
 
+    // Global error handling
+    window.addEventListener('error', (event) => {
+        console.error('Global error caught:', event.error || event.message, 'at', event.filename, ':', event.lineno);
+    });
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('Unhandled promise rejection:', event.reason);
+    });
+
     // Check if user is already logged in
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
         showStartScreen();
-    } else {
-        // Create a guest user for immediate play
-        currentUser = {
-            username: 'Guest',
-            bestScore: 0,
-            bestWpm: 0,
-            shieldCount: 0,
-            doubleDamageCount: 0,
-            slowMotionCount: 0,
-            coins: 0
-        };
-        console.log('Created guest user:', currentUser);
-        showStartScreen();
     }
 
     // Check for updates
     checkForUpdates();
-    } catch (error) {
-        console.error('DOMContentLoaded error:', error);
-    }
+} catch (error) {
+    console.error('Error during initialization:', error);
+}
 });
 
 // Function to check for updates
@@ -687,6 +730,26 @@ function checkForUpdates() {
     if (currentVersion !== '2.0') {
         // Show update notification
         showUpdateNotification();
+    }
+    // Update version display in updates screen
+    updateVersionDisplay();
+}
+
+// Function to update version display in updates screen
+function updateVersionDisplay() {
+    let currentVersion = localStorage.getItem('gameVersion') || '1.0';
+    const versionDisplay = document.getElementById('current-version-display');
+    if (versionDisplay) {
+        versionDisplay.textContent = currentVersion;
+    }
+    // Also show/hide update available section based on version
+    const updateAvailableSection = document.getElementById('update-available-section');
+    if (updateAvailableSection) {
+        if (currentVersion !== '2.0') {
+            updateAvailableSection.classList.remove('hidden');
+        } else {
+            updateAvailableSection.classList.add('hidden');
+        }
     }
 }
 
@@ -730,35 +793,89 @@ function showUpdateNotification() {
 
 // Function to update to version 2.0
 function updateToVersion2() {
+    // Clear any existing update progress interval
+    if (window.updateProgressInterval) {
+        clearInterval(window.updateProgressInterval);
+        window.updateProgressInterval = null;
+    }
+
     // Show loading indicator
     const loadingIndicator = document.getElementById('loading-indicator');
     if (loadingIndicator) {
         loadingIndicator.classList.remove('hidden');
-        loadingIndicator.innerHTML = '<p>Updating to Version 2.0...</p>';
+        // Update the text to show updating message
+        const statusText = loadingIndicator.querySelector('p:first-of-type');
+        if (statusText) {
+            statusText.textContent = 'Updating to Version 2.0...';
+        }
     }
 
-    // Simulate update process (in a real application, this would download and install the update)
-    setTimeout(() => {
-        // Update version in localStorage
-        localStorage.setItem('gameVersion', '2.0');
+    // Get progress elements
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const countdownText = document.getElementById('countdown-text');
+    
+    // Reset progress
+    let progress = 0;
+    const totalSeconds = 100;
+    let secondsRemaining = totalSeconds;
+    
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    }
+    if (progressText) {
+        progressText.textContent = '0%';
+    }
+    if (countdownText) {
+        countdownText.textContent = `${secondsRemaining} seconds remaining`;
+    }
 
-        // Hide update notification
-        const updateNotification = document.getElementById('update-notification');
-        if (updateNotification) {
-            updateNotification.style.display = 'none';
+    // Start progress interval - update every 1000ms (1 second)
+    window.updateProgressInterval = setInterval(() => {
+        progress += 1;
+        secondsRemaining = totalSeconds - progress;
+        
+        // Update progress bar
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
         }
-
-        // Hide loading indicator
-        if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
+        
+        // Update progress text
+        if (progressText) {
+            progressText.textContent = `${progress}%`;
         }
+        
+        // Update countdown text
+        if (countdownText) {
+        countdownText.textContent = `${secondsRemaining} second${secondsRemaining !== 1 ? 's' : ''} remaining`;
+        }
+        
+        // Check if update is complete
+        if (progress >= 100) {
+            clearInterval(window.updateProgressInterval);
+            window.updateProgressInterval = null;
+            
+            // Update version in localStorage
+            localStorage.setItem('gameVersion', '2.0');
 
-        // Show success message
-        alert('Successfully updated to Version 2.0! Enjoy the new features!');
+            // Hide update notification
+            const updateNotification = document.getElementById('update-notification');
+            if (updateNotification) {
+                updateNotification.style.display = 'none';
+            }
 
-        // Reload the page to apply changes
-        location.reload();
-    }, 2000);
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.classList.add('hidden');
+            }
+
+            // Show success message
+            alert('Successfully updated to Version 2.0! Enjoy the new features!');
+
+            // Reload the page to apply changes
+            location.reload();
+        }
+    }, 1000); // Update every second (1000ms)
 }
 
 // Show signup form
@@ -806,6 +923,7 @@ function handleSignup() {
         shieldCount: 0,
         doubleDamageCount: 0,
         slowMotionCount: 0,
+        scoreHistory: [],
         registrationDate: new Date().toISOString()
     };
 
@@ -818,7 +936,8 @@ function handleSignup() {
         bestWpm: 0,
         shieldCount: 0,
         doubleDamageCount: 0,
-        slowMotionCount: 0
+        slowMotionCount: 0,
+        scoreHistory: []
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -857,7 +976,8 @@ function handleLogin() {
         bestWpm: user.bestWpm || 0,
         shieldCount: user.shieldCount || 0,
         doubleDamageCount: user.doubleDamageCount || 0,
-        slowMotionCount: user.slowMotionCount || 0
+        slowMotionCount: user.slowMotionCount || 0,
+        scoreHistory: user.scoreHistory || []
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -1135,6 +1255,7 @@ function startGame() {
 // Handle user input
 function handleInput(e) {
     if (gameState !== 'playing' || isGamePaused) return; // Don't handle input when paused
+    if (!wordInput) return; // Safety check
 
     if (e.key === 'Enter') {
         const typedWord = wordInput.value.trim();
@@ -1621,6 +1742,28 @@ function updateUserInStorage() {
         users[currentUser.username].shieldCount = currentUser.shieldCount || 0;
         users[currentUser.username].doubleDamageCount = currentUser.doubleDamageCount || 0;
         users[currentUser.username].slowMotionCount = currentUser.slowMotionCount || 0;
+        
+        // Add current game score to history
+        if (!users[currentUser.username].scoreHistory) {
+            users[currentUser.username].scoreHistory = [];
+        }
+        
+        // Create score entry with current game data
+        const scoreEntry = {
+            score: score,
+            wpm: wpm,
+            level: level,
+            accuracy: accuracy,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Add to beginning of array (newest first)
+        users[currentUser.username].scoreHistory.unshift(scoreEntry);
+        
+        // Keep only the last 10 scores to avoid storage bloat
+        if (users[currentUser.username].scoreHistory.length > 10) {
+            users[currentUser.username].scoreHistory = users[currentUser.username].scoreHistory.slice(0, 10);
+        }
     }
 
     // Save updated users back to localStorage
@@ -1657,9 +1800,52 @@ function showProfileScreen() {
 
         // Update power-up counts
         updatePowerupCounts();
+        
+        // Display score history if available
+        displayScoreHistory(userData);
     } else {
         console.log('No current user found, profile screen will be empty');
     }
+}
+
+// Display score history in profile screen
+function displayScoreHistory(userData) {
+    const scoreHistoryList = document.getElementById('score-history-list');
+    if (!scoreHistoryList) {
+        console.error('Score history list element not found');
+        return;
+    }
+    
+    // Clear existing content
+    scoreHistoryList.innerHTML = '';
+    
+    // Check if there's score history
+    if (!userData || !userData.scoreHistory || userData.scoreHistory.length === 0) {
+        scoreHistoryList.innerHTML = '<p class="no-scores">No scores recorded yet</p>';
+        return;
+    }
+    
+    // Create a list of scores
+    userData.scoreHistory.forEach((entry, index) => {
+        const scoreItem = document.createElement('div');
+        scoreItem.className = 'score-item';
+        
+        // Format date
+        const date = new Date(entry.timestamp);
+        const dateStr = date.toLocaleDateString();
+        const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        
+        scoreItem.innerHTML = `
+            <div class="score-rank">${index + 1}.</div>
+            <div class="score-details">
+                <div class="score-value">Score: ${entry.score}</div>
+                <div class="score-stats">WPM: ${entry.wpm} | Level: ${entry.level} | Accuracy: ${entry.accuracy}%</div>
+                <div class="score-time">${dateStr} ${timeStr}</div>
+            </div>
+        `;
+        
+        scoreHistoryList.appendChild(scoreItem);
+    });
 }
 
 // Handle user logout
@@ -1778,27 +1964,10 @@ function checkPowerupTimers() {
 
 // Show store screen
 function showStoreScreen() {
-    console.log('showStoreScreen called, gameState:', gameState);
-    console.log('storeScreen element exists:', !!storeScreen);
-    
     // Store the previous game state to return to it later
     window.previousGameState = gameState;
-    
-    // Hide all screens first
-    const screens = document.querySelectorAll('.screen');
-    console.log('Hiding', screens.length, 'screens');
-    screens.forEach(screen => {
-        screen.classList.remove('active');
-    });
-    
-    if (storeScreen) {
-        storeScreen.classList.add('active');
-        console.log('Store screen active class added');
-    } else {
-        console.error('storeScreen not found!');
-        return;
-    }
-    
+    profileScreen.classList.remove('active');
+    storeScreen.classList.add('active');
     gameState = 'shop';
 
     // Update powerup counts in the store
@@ -2077,7 +2246,7 @@ function togglePause() {
         
         // Ensure word input is focused
         if (wordInput) {
-            wordInput.focus();
+            if (wordInput) wordInput.focus();
         }
 
         // Restart asteroid spawning if needed
@@ -2360,6 +2529,49 @@ function hideModal(modalOverlay) {
     if (modalOverlay) {
         modalOverlay.classList.add('hidden');
     }
+}
+
+// Show image in full screen modal
+function showImageModal(imageSrc, altText) {
+    let modalOverlay = document.getElementById('image-modal-overlay');
+    if (!modalOverlay) {
+        modalOverlay = document.createElement('div');
+        modalOverlay.id = 'image-modal-overlay';
+        modalOverlay.className = 'image-modal-overlay hidden';
+        modalOverlay.innerHTML = `
+            <div class="image-modal-content">
+                <img src="" alt="" class="image-modal-img">
+                <div class="image-modal-caption"></div>
+            </div>
+        `;
+        document.body.appendChild(modalOverlay);
+        
+        // Close modal when clicking outside the image
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                hideModal(modalOverlay);
+            }
+        });
+        
+        // Close modal with Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
+                hideModal(modalOverlay);
+            }
+        };
+        
+        modalOverlay._escapeHandler = handleEscape;
+        document.addEventListener('keydown', handleEscape);
+    }
+    
+    const img = modalOverlay.querySelector('.image-modal-img');
+    const caption = modalOverlay.querySelector('.image-modal-caption');
+    
+    img.src = imageSrc;
+    img.alt = altText;
+    caption.textContent = altText;
+    
+    modalOverlay.classList.remove('hidden');
 }
 
 // Show confirmation dialog before removing a player
