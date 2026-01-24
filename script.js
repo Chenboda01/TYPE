@@ -830,6 +830,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
         showStartScreen();
+        // Apply user settings for auto-logged in user
+        applySettings();
     }
 
     // Check for updates
@@ -848,6 +850,7 @@ function checkForUpdates() {
     } else {
         currentVersion = localStorage.getItem('gameVersion') || '1.0';
     }
+    console.log('checkForUpdates: currentVersion=', currentVersion, 'LATEST_VERSION=', LATEST_VERSION);
 
     // Check if there's a new version available
     if (currentVersion !== LATEST_VERSION) {
@@ -1025,6 +1028,7 @@ function updateToVersion2() {
 
 // Function to update to version 3.0
 function updateToVersion3() {
+    console.log('updateToVersion3 called, starting migration...');
     // Clear any existing update progress interval
     if (window.updateProgressInterval) {
         clearInterval(window.updateProgressInterval);
@@ -1040,6 +1044,46 @@ function updateToVersion3() {
         if (statusText) {
             statusText.textContent = 'Updating to Version 3.0...';
         }
+    }
+
+    // Migrate existing user data to include scoreHistory, settings, and gamesPlayed
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    let migratedCount = 0;
+    for (const username in users) {
+        const user = users[username];
+        let needsUpdate = false;
+        
+        // Ensure scoreHistory exists
+        if (!user.scoreHistory) {
+            user.scoreHistory = [];
+            needsUpdate = true;
+        }
+        
+        // Ensure settings exists with defaults
+        if (!user.settings) {
+            user.settings = {
+                soundEnabled: true,
+                musicEnabled: true,
+                difficulty: 'medium',
+                typingSensitivity: 5
+            };
+            needsUpdate = true;
+        }
+        
+        // Ensure gamesPlayed exists
+        if (user.gamesPlayed === undefined) {
+            user.gamesPlayed = 0;
+            needsUpdate = true;
+        }
+        
+        if (needsUpdate) {
+            users[username] = user;
+            migratedCount++;
+        }
+    }
+    if (migratedCount > 0) {
+        localStorage.setItem('users', JSON.stringify(users));
+        console.log(`Migrated ${migratedCount} user(s) to version 3.0 data structure`);
     }
 
     // Get progress elements
@@ -1124,6 +1168,8 @@ function updateToVersion3() {
 // Show signup form
 // Function to update to the latest version
 function updateToLatestVersion() {
+    console.log('updateToLatestVersion called, LATEST_VERSION:', LATEST_VERSION);
+    alert('Starting update to version ' + LATEST_VERSION + '...');
     if (LATEST_VERSION === '2.0') {
         updateToVersion2();
     } else if (LATEST_VERSION === '3.0') {
@@ -1177,7 +1223,13 @@ function handleSignup() {
         slowMotionCount: 0,
         scoreHistory: [],
         version: '1.0',
-        registrationDate: new Date().toISOString()
+        registrationDate: new Date().toISOString(),
+        settings: {
+            soundEnabled: true,
+            musicEnabled: true,
+            difficulty: 'medium',
+            typingSensitivity: 5
+        }
     };
 
     localStorage.setItem('users', JSON.stringify(users));
@@ -1191,7 +1243,13 @@ function handleSignup() {
         doubleDamageCount: 0,
         slowMotionCount: 0,
         scoreHistory: [],
-        version: '1.0'
+        version: '1.0',
+        settings: {
+            soundEnabled: true,
+            musicEnabled: true,
+            difficulty: 'medium',
+            typingSensitivity: 5
+        }
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -1202,6 +1260,9 @@ function handleSignup() {
     // Switch to start screen
     showStartScreen();
     updatePowerupCounts();
+    
+    // Apply user settings
+    applySettings();
 }
 
 // Handle user login
@@ -1230,6 +1291,31 @@ function handleLogin() {
         localStorage.setItem('users', JSON.stringify(users));
     }
 
+    // Ensure user has required fields for version 3.0
+    let needsUpdate = false;
+    if (!user.scoreHistory) {
+        user.scoreHistory = [];
+        needsUpdate = true;
+    }
+    if (!user.settings) {
+        user.settings = {
+            soundEnabled: true,
+            musicEnabled: true,
+            difficulty: 'medium',
+            typingSensitivity: 5
+        };
+        needsUpdate = true;
+    }
+    if (user.gamesPlayed === undefined) {
+        user.gamesPlayed = 0;
+        needsUpdate = true;
+    }
+    if (needsUpdate) {
+        users[username] = user;
+        localStorage.setItem('users', JSON.stringify(users));
+        console.log('Migrated user data for', username);
+    }
+
     // Login successful
     currentUser = {
         username: username,
@@ -1239,7 +1325,13 @@ function handleLogin() {
         doubleDamageCount: user.doubleDamageCount || 0,
         slowMotionCount: user.slowMotionCount || 0,
         scoreHistory: user.scoreHistory || [],
-        version: user.version || '1.0'
+        version: user.version || '1.0',
+        settings: user.settings || {
+            soundEnabled: true,
+            musicEnabled: true,
+            difficulty: 'medium',
+            typingSensitivity: 5
+        }
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -1253,6 +1345,9 @@ function handleLogin() {
 
     // Switch to start screen
     showStartScreen();
+    
+    // Apply user settings
+    applySettings();
 }
 
 // Show start screen after authentication
@@ -2377,13 +2472,30 @@ function applySettings() {
     
     // Apply game settings
     if (typeof settings.soundEnabled === 'boolean') {
-        // TODO: Apply sound settings in game
+        // TODO: Apply sound settings in game when sound effects are implemented
         console.log('Sound enabled:', settings.soundEnabled);
     }
     
     if (typeof settings.musicEnabled === 'boolean') {
-        // TODO: Apply music settings in game
-        console.log('Music enabled:', settings.musicEnabled);
+        // Apply music settings immediately
+        console.log('Applying music settings:', settings.musicEnabled);
+        if (settings.musicEnabled) {
+            // Music should be enabled
+            if (!isMusicPlaying) {
+                // If music is not playing, start it
+                if (!backgroundMusic) {
+                    initMusic();
+                }
+                backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+                isMusicPlaying = true;
+            }
+        } else {
+            // Music should be disabled
+            if (isMusicPlaying && backgroundMusic) {
+                backgroundMusic.pause();
+                isMusicPlaying = false;
+            }
+        }
     }
     
     if (settings.difficulty) {

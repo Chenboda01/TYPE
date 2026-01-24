@@ -2056,6 +2056,45 @@ input[type="range"] {
     background-color: #444;
 }
 
+/* Responsive design for settings screen */
+@media (max-width: 768px) {
+    .settings-content {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .setting-item label {
+        margin-bottom: 5px;
+    }
+    
+    .setting-item select,
+    .setting-item input[type="text"],
+    .setting-item input[type="password"],
+    .setting-item input[type="range"] {
+        width: 100%;
+    }
+    
+    .profile-picture-preview {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .settings-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .settings-actions button {
+        width: 100%;
+    }
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     #game-container {
