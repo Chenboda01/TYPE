@@ -1,4 +1,5 @@
 // Game variables
+console.log('TYPE game script loading...');
 let gameState = 'start'; // 'start', 'playing', 'gameOver', 'help', 'hosting'
 let score = 0;
 let level = 1;
@@ -26,6 +27,9 @@ let activePowerups = {
 };
 let powerupSpawnInterval;
 
+// Versioning
+const LATEST_VERSION = '3.0';
+
 // DOM elements
 let startScreen;
 let gameScreen;
@@ -45,6 +49,7 @@ let asteroidField;
 let bulletContainer;
 let powerupContainer;
 let storeScreen;
+let profileScreen;
 
 let livesContainer; // Declare livesContainer variable to be initialized after DOM load
 let playersList;
@@ -53,6 +58,30 @@ let reportsList;
 let hostScreen;
 let helpCenterScreen;
 let updatesScreen;
+let settingsScreen;
+
+// Settings screen elements
+let settingsButton;
+let settingsBackButton;
+let uploadPictureBtn;
+let removePictureBtn;
+let profilePictureInput;
+let profilePictureImg;
+let profilePicturePlaceholder;
+let soundToggle;
+let musicToggle;
+let difficultySelect;
+let typingSensitivity;
+let sensitivityValue;
+let usernameChange;
+let updateUsernameBtn;
+let passwordChange;
+let updatePasswordBtn;
+let saveSettingsBtn;
+let resetSettingsBtn;
+
+// Game UI elements
+let inGameMusicToggle;
 
 // Audio elements
 let backgroundMusic;
@@ -99,6 +128,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const updatesButton = document.getElementById('updates-button');
     helpCenterScreen = document.getElementById('help-center-screen');
     updatesScreen = document.getElementById('updates-screen');
+    settingsScreen = document.getElementById('settings-screen');
+    settingsButton = document.getElementById('settings-button');
+    settingsBackButton = document.getElementById('settings-back-button');
+    uploadPictureBtn = document.getElementById('upload-picture-btn');
+    removePictureBtn = document.getElementById('remove-picture-btn');
+    profilePictureInput = document.getElementById('profile-picture-input');
+    profilePictureImg = document.getElementById('profile-picture-img');
+    profilePicturePlaceholder = document.getElementById('profile-picture-placeholder');
+    soundToggle = document.getElementById('sound-toggle');
+    musicToggle = document.getElementById('settings-music-toggle');
+    difficultySelect = document.getElementById('difficulty-select');
+    typingSensitivity = document.getElementById('typing-sensitivity');
+    sensitivityValue = document.getElementById('sensitivity-value');
+    usernameChange = document.getElementById('username-change');
+    updateUsernameBtn = document.getElementById('update-username-btn');
+    passwordChange = document.getElementById('password-change');
+    updatePasswordBtn = document.getElementById('update-password-btn');
+    saveSettingsBtn = document.getElementById('save-settings-btn');
+    resetSettingsBtn = document.getElementById('reset-settings-btn');
     const helpCenterBackButton = document.getElementById('help-center-back-button');
     const updatesBackButton = document.getElementById('updates-back-button');
     const checkUpdatesButton = document.getElementById('check-updates-button');
@@ -150,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM elements assigned successfully');
 
     // Initialize music elements
-    const musicToggle = document.getElementById('music-toggle');
     const volumeSlider = document.getElementById('volume-slider');
     const pauseButton = document.getElementById('pause-button');
 
@@ -279,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkUpdatesButton.addEventListener('click', checkForUpdates);
 
     if (updateNowBtnScreen) {
-        updateNowBtnScreen.addEventListener('click', updateToVersion2);
+        updateNowBtnScreen.addEventListener('click', updateToLatestVersion);
     }
 
     if (updateLaterBtnScreen) {
@@ -287,6 +334,40 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('update-available-section').classList.add('hidden');
         });
     }
+
+    // Settings screen navigation
+    if (settingsButton) {
+        settingsButton.addEventListener('click', showSettingsScreen);
+    }
+    if (settingsBackButton) {
+        settingsBackButton.addEventListener('click', hideSettingsScreen);
+    }
+    if (uploadPictureBtn) {
+        uploadPictureBtn.addEventListener('click', () => profilePictureInput.click());
+    }
+    if (profilePictureInput) {
+        profilePictureInput.addEventListener('change', handleProfilePictureUpload);
+    }
+    if (removePictureBtn) {
+        removePictureBtn.addEventListener('click', removeProfilePicture);
+    }
+    if (typingSensitivity) {
+        typingSensitivity.addEventListener('input', updateSensitivityValue);
+    }
+    if (updateUsernameBtn) {
+        updateUsernameBtn.addEventListener('click', updateUsername);
+    }
+    if (updatePasswordBtn) {
+        updatePasswordBtn.addEventListener('click', updatePassword);
+    }
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', saveSettings);
+    }
+    if (resetSettingsBtn) {
+        resetSettingsBtn.addEventListener('click', resetSettings);
+    }
+    // Load settings when settings screen is shown
+    // (handled in showSettingsScreen function)
 
     // Report form submission
     reportForm.addEventListener('submit', (e) => {
@@ -393,7 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
     volumeSlider.addEventListener('input', updateVolume);
 
     // Game pause/resume controls
-    pauseButton.addEventListener('click', togglePause);
+    pauseButton.addEventListener('click', function() {
+        console.log('Pause button clicked, gameState:', gameState, 'isGamePaused:', isGamePaused);
+        togglePause();
+    });
 
     // Initialize authentication elements
     const authScreen = document.getElementById('auth-screen');
@@ -438,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Profile screen elements
-    const profileScreen = document.getElementById('profile-screen');
+    profileScreen = document.getElementById('profile-screen');
     const viewProfileButton = document.getElementById('view-profile');
     const backToGameButton = document.getElementById('back-to-game');
     const logoutButton = document.getElementById('logout-button');
@@ -447,6 +531,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Profile controls
     viewProfileButton.addEventListener('click', showProfileScreen);
+    
+    // View profile button on start screen
+    const viewProfileStartButton = document.getElementById('view-profile-start');
+    if (viewProfileStartButton) {
+        viewProfileStartButton.addEventListener('click', () => {
+            console.log('View Profile button clicked from start screen');
+            // If user is not logged in, show auth screen first
+            if (!currentUser) {
+                console.log('No current user, redirecting to auth');
+                startScreen.classList.remove('active');
+                document.getElementById('auth-screen').classList.add('active');
+                gameState = 'start';
+                return;
+            }
+
+            // Store the previous game state to return to the start screen
+            window.previousGameState = 'start';
+
+            // Navigate to profile screen
+            console.log('Showing profile screen for user:', currentUser.username);
+            startScreen.classList.remove('active');
+            showProfileScreen();
+        });
+    } else {
+        console.error('View Profile Start button not found!');
+    }
     backToGameButton.addEventListener('click', () => {
         profileScreen.classList.remove('active');
         startScreen.classList.add('active');
@@ -617,10 +727,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     isGamePaused = true;
 
                     // Pause the game
-                    clearInterval(gameInterval);
-                    if (spawnInterval) {
-                        clearInterval(spawnInterval);
-                    }
+        console.log('Clearing gameInterval:', gameInterval);
+        clearInterval(gameInterval);
+        if (spawnInterval) {
+            console.log('Clearing spawnInterval:', spawnInterval);
+            clearInterval(spawnInterval);
+        }
                     if (powerupSpawnInterval) {
                         clearInterval(powerupSpawnInterval);
                     }
@@ -667,7 +779,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add resume button event listener
     const resumeButton = document.getElementById('resume-button');
-    resumeButton.addEventListener('click', togglePause);
+    resumeButton.addEventListener('click', function() {
+        console.log('Resume button clicked, gameState:', gameState, 'isGamePaused:', isGamePaused);
+        togglePause();
+    });
 
     // Global keydown listener to handle Enter key for start/restart and pause
     document.addEventListener('keydown', function(event) {
@@ -680,12 +795,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // Also allow Enter to resume when paused
             else if (gameState === 'playing' && isGamePaused) {
+                console.log('Enter key pressed to resume, gameState:', gameState, 'isGamePaused:', isGamePaused);
                 togglePause();
             }
         }
 
         // Add P key to pause/resume during gameplay
         if (event.key === 'p' || event.key === 'P') {
+            console.log('P key pressed, gameState:', gameState, 'isGamePaused:', isGamePaused);
             if (gameState === 'playing') {
                 togglePause();
             }
@@ -723,13 +840,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Function to check for updates
 function checkForUpdates() {
-    // Get current version from localStorage or default to 1.0
-    let currentVersion = localStorage.getItem('gameVersion') || '1.0';
+    // Get current version from currentUser if logged in, else localStorage, default to 1.0
+    let currentVersion = '1.0';
+    if (currentUser && currentUser.version) {
+        currentVersion = currentUser.version;
+    } else {
+        currentVersion = localStorage.getItem('gameVersion') || '1.0';
+    }
 
-    // Check if there's a new version available (version 2.0)
-    if (currentVersion !== '2.0') {
+    // Check if there's a new version available
+    if (currentVersion !== LATEST_VERSION) {
         // Show update notification
-        showUpdateNotification();
+        showUpdateNotification(currentVersion, LATEST_VERSION);
     }
     // Update version display in updates screen
     updateVersionDisplay();
@@ -737,7 +859,12 @@ function checkForUpdates() {
 
 // Function to update version display in updates screen
 function updateVersionDisplay() {
-    let currentVersion = localStorage.getItem('gameVersion') || '1.0';
+    let currentVersion = '1.0';
+    if (currentUser && currentUser.version) {
+        currentVersion = currentUser.version;
+    } else {
+        currentVersion = localStorage.getItem('gameVersion') || '1.0';
+    }
     const versionDisplay = document.getElementById('current-version-display');
     if (versionDisplay) {
         versionDisplay.textContent = currentVersion;
@@ -745,7 +872,7 @@ function updateVersionDisplay() {
     // Also show/hide update available section based on version
     const updateAvailableSection = document.getElementById('update-available-section');
     if (updateAvailableSection) {
-        if (currentVersion !== '2.0') {
+        if (currentVersion !== LATEST_VERSION) {
             updateAvailableSection.classList.remove('hidden');
         } else {
             updateAvailableSection.classList.add('hidden');
@@ -754,7 +881,7 @@ function updateVersionDisplay() {
 }
 
 // Function to show update notification
-function showUpdateNotification() {
+function showUpdateNotification(currentVersion, latestVersion) {
     // Create update notification element if it doesn't exist
     let updateNotification = document.getElementById('update-notification');
     if (!updateNotification) {
@@ -764,7 +891,7 @@ function showUpdateNotification() {
         updateNotification.innerHTML = `
             <div class="update-content">
                 <h3>🎉 New Version Available!</h3>
-                <p>Version 2.0 is now available with bug fixes and performance improvements!</p>
+                <p>Version ${latestVersion} is now available with settings and profile picture management!</p>
                 <div class="update-buttons">
                     <button id="update-now-btn">Update Now</button>
                     <button id="update-later-btn">Update Later</button>
@@ -778,8 +905,14 @@ function showUpdateNotification() {
             startScreen.appendChild(updateNotification);
         }
 
-        // Add event listeners to buttons
-        document.getElementById('update-now-btn').addEventListener('click', updateToVersion2);
+        // Add event listeners to buttons - determine which update function to call based on latestVersion
+        document.getElementById('update-now-btn').addEventListener('click', () => {
+            if (latestVersion === '2.0') {
+                updateToVersion2();
+            } else if (latestVersion === '3.0') {
+                updateToVersion3();
+            }
+        });
         document.getElementById('update-later-btn').addEventListener('click', () => {
             updateNotification.style.display = 'none';
             // Store that user chose to update later
@@ -855,8 +988,19 @@ function updateToVersion2() {
             clearInterval(window.updateProgressInterval);
             window.updateProgressInterval = null;
             
-            // Update version in localStorage
+            // Update version in localStorage and user object
             localStorage.setItem('gameVersion', '2.0');
+            if (currentUser && currentUser.username) {
+                // Update currentUser object
+                currentUser.version = '2.0';
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                // Update users object
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                if (users[currentUser.username]) {
+                    users[currentUser.username].version = '2.0';
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+            }
 
             // Hide update notification
             const updateNotification = document.getElementById('update-notification');
@@ -878,7 +1022,114 @@ function updateToVersion2() {
     }, 1000); // Update every second (1000ms)
 }
 
+// Function to update to version 3.0
+function updateToVersion3() {
+    // Clear any existing update progress interval
+    if (window.updateProgressInterval) {
+        clearInterval(window.updateProgressInterval);
+        window.updateProgressInterval = null;
+    }
+
+    // Show loading indicator
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.classList.remove('hidden');
+        // Update the text to show updating message
+        const statusText = loadingIndicator.querySelector('p:first-of-type');
+        if (statusText) {
+            statusText.textContent = 'Updating to Version 3.0...';
+        }
+    }
+
+    // Get progress elements
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const countdownText = document.getElementById('countdown-text');
+    
+    // Reset progress
+    let progress = 0;
+    const totalSeconds = 100;
+    let secondsRemaining = totalSeconds;
+    
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    }
+    if (progressText) {
+        progressText.textContent = '0%';
+    }
+    if (countdownText) {
+        countdownText.textContent = `${secondsRemaining} second${secondsRemaining !== 1 ? 's' : ''} remaining`;
+    }
+
+    // Start progress interval - update every 1000ms (1 second)
+    window.updateProgressInterval = setInterval(() => {
+        progress += 1;
+        secondsRemaining = totalSeconds - progress;
+        
+        // Update progress bar
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Update progress text
+        if (progressText) {
+            progressText.textContent = `${progress}%`;
+        }
+        
+        // Update countdown text
+        if (countdownText) {
+        countdownText.textContent = `${secondsRemaining} second${secondsRemaining !== 1 ? 's' : ''} remaining`;
+        }
+        
+        // Check if update is complete
+        if (progress >= 100) {
+            clearInterval(window.updateProgressInterval);
+            window.updateProgressInterval = null;
+            
+            // Update version in localStorage and user object
+            localStorage.setItem('gameVersion', '3.0');
+            if (currentUser && currentUser.username) {
+                // Update currentUser object
+                currentUser.version = '3.0';
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                // Update users object
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                if (users[currentUser.username]) {
+                    users[currentUser.username].version = '3.0';
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+            }
+
+            // Hide update notification
+            const updateNotification = document.getElementById('update-notification');
+            if (updateNotification) {
+                updateNotification.style.display = 'none';
+            }
+
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.classList.add('hidden');
+            }
+
+            // Show success message
+            alert('Successfully updated to Version 3.0! Enjoy new settings and profile picture management!');
+
+            // Reload the page to apply changes
+            location.reload();
+        }
+    }, 1000); // Update every second (1000ms)
+}
+
 // Show signup form
+// Function to update to the latest version
+function updateToLatestVersion() {
+    if (LATEST_VERSION === '2.0') {
+        updateToVersion2();
+    } else if (LATEST_VERSION === '3.0') {
+        updateToVersion3();
+    }
+}
+
 function showSignupForm(e) {
     e.preventDefault();
     document.getElementById('login-form').classList.add('hidden');
@@ -924,6 +1175,7 @@ function handleSignup() {
         doubleDamageCount: 0,
         slowMotionCount: 0,
         scoreHistory: [],
+        version: '1.0',
         registrationDate: new Date().toISOString()
     };
 
@@ -937,7 +1189,8 @@ function handleSignup() {
         shieldCount: 0,
         doubleDamageCount: 0,
         slowMotionCount: 0,
-        scoreHistory: []
+        scoreHistory: [],
+        version: '1.0'
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -969,6 +1222,13 @@ function handleLogin() {
         return;
     }
 
+    // Ensure user has version field (backward compatibility)
+    if (user.version === undefined) {
+        user.version = localStorage.getItem('gameVersion') || '1.0';
+        users[username] = user;
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+
     // Login successful
     currentUser = {
         username: username,
@@ -977,7 +1237,8 @@ function handleLogin() {
         shieldCount: user.shieldCount || 0,
         doubleDamageCount: user.doubleDamageCount || 0,
         slowMotionCount: user.slowMotionCount || 0,
-        scoreHistory: user.scoreHistory || []
+        scoreHistory: user.scoreHistory || [],
+        version: user.version || '1.0'
     };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -1764,6 +2025,9 @@ function updateUserInStorage() {
         if (users[currentUser.username].scoreHistory.length > 10) {
             users[currentUser.username].scoreHistory = users[currentUser.username].scoreHistory.slice(0, 10);
         }
+        
+        // Also update currentUser's scoreHistory to keep it in sync
+        currentUser.scoreHistory = users[currentUser.username].scoreHistory;
     }
 
     // Save updated users back to localStorage
@@ -1773,9 +2037,369 @@ function updateUserInStorage() {
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 }
 
+// Settings screen functions
+function showSettingsScreen() {
+    // Check if settings screen element is available
+    if (!settingsScreen) {
+        console.error('Settings screen element not found!');
+        return;
+    }
+    
+    // Hide all screens first
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    
+    settingsScreen.classList.add('active');
+    console.log('Settings screen activated');
+
+    // Load current settings
+    loadSettings();
+}
+
+function hideSettingsScreen() {
+    if (settingsScreen) {
+        settingsScreen.classList.remove('active');
+        // Go back to profile screen if we came from there
+        if (profileScreen && document.getElementById('settings-button')) {
+            profileScreen.classList.add('active');
+        } else {
+            startScreen.classList.add('active');
+        }
+    }
+}
+
+function loadSettings() {
+    if (!currentUser) {
+        console.log('No user logged in, loading default settings');
+        loadDefaultSettings();
+        return;
+    }
+
+    // Get user settings from localStorage
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userData = users[currentUser.username];
+    
+    if (userData && userData.settings) {
+        const settings = userData.settings;
+        
+        // Load profile picture
+        if (settings.profilePicture) {
+            profilePictureImg.src = settings.profilePicture;
+            profilePictureImg.style.display = 'block';
+            profilePicturePlaceholder.style.display = 'none';
+        } else {
+            profilePictureImg.style.display = 'none';
+            profilePicturePlaceholder.style.display = 'block';
+        }
+        
+        // Load game settings
+        if (soundToggle) soundToggle.checked = settings.soundEnabled !== false;
+        if (musicToggle) musicToggle.checked = settings.musicEnabled !== false;
+        if (difficultySelect) difficultySelect.value = settings.difficulty || 'medium';
+        if (typingSensitivity && settings.typingSensitivity) {
+            typingSensitivity.value = settings.typingSensitivity;
+            if (sensitivityValue) sensitivityValue.textContent = settings.typingSensitivity;
+        }
+    } else {
+        loadDefaultSettings();
+    }
+}
+
+function loadDefaultSettings() {
+    // Set default values
+    if (profilePictureImg) profilePictureImg.style.display = 'none';
+    if (profilePicturePlaceholder) profilePicturePlaceholder.style.display = 'block';
+    if (soundToggle) soundToggle.checked = true;
+    if (musicToggle) musicToggle.checked = true;
+    if (difficultySelect) difficultySelect.value = 'medium';
+    if (typingSensitivity) {
+        typingSensitivity.value = 5;
+        if (sensitivityValue) sensitivityValue.textContent = '5';
+    }
+}
+
+function updateSensitivityValue() {
+    if (typingSensitivity && sensitivityValue) {
+        sensitivityValue.textContent = typingSensitivity.value;
+    }
+}
+
+function handleProfilePictureUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        alert('File too large! Please choose a file smaller than 2MB.');
+        return;
+    }
+    
+    // Check file type
+    if (!file.type.match('image.*')) {
+        alert('Please select an image file (JPG, PNG, etc.).');
+        return;
+    }
+    
+    // Create a FileReader to read the file
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const imageDataUrl = e.target.result;
+        
+        // Display the image
+        profilePictureImg.src = imageDataUrl;
+        profilePictureImg.style.display = 'block';
+        profilePicturePlaceholder.style.display = 'none';
+        
+        // Save to settings
+        if (currentUser) {
+            saveProfilePictureToSettings(imageDataUrl);
+        }
+    };
+    
+    reader.readAsDataURL(file);
+}
+
+function saveProfilePictureToSettings(imageDataUrl) {
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userData = users[currentUser.username];
+    
+    if (!userData) return;
+    
+    if (!userData.settings) {
+        userData.settings = {};
+    }
+    
+    userData.settings.profilePicture = imageDataUrl;
+    
+    // Update localStorage
+    users[currentUser.username] = userData;
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    // Also update currentUser
+    if (!currentUser.settings) {
+        currentUser.settings = {};
+    }
+    currentUser.settings.profilePicture = imageDataUrl;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+}
+
+function removeProfilePicture() {
+    // Reset profile picture display
+    profilePictureImg.src = '';
+    profilePictureImg.style.display = 'none';
+    profilePicturePlaceholder.style.display = 'block';
+    
+    // Remove from settings
+    if (currentUser) {
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        const userData = users[currentUser.username];
+        
+        if (userData && userData.settings) {
+            delete userData.settings.profilePicture;
+            
+            // Update localStorage
+            users[currentUser.username] = userData;
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // Also update currentUser
+            if (currentUser.settings) {
+                delete currentUser.settings.profilePicture;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+        }
+    }
+}
+
+function updateUsername() {
+    if (!currentUser) {
+        alert('Please log in to change username.');
+        return;
+    }
+    
+    const newUsername = usernameChange.value.trim();
+    if (!newUsername) {
+        alert('Please enter a new username.');
+        return;
+    }
+    
+    if (newUsername === currentUser.username) {
+        alert('New username is the same as current username.');
+        return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    
+    // Check if new username already exists
+    if (users[newUsername]) {
+        alert('Username already exists. Please choose another one.');
+        return;
+    }
+    
+    // Get current user data
+    const userData = users[currentUser.username];
+    if (!userData) {
+        alert('Error: User data not found.');
+        return;
+    }
+    
+    // Delete old user entry and create new one
+    delete users[currentUser.username];
+    users[newUsername] = userData;
+    
+    // Update currentUser
+    currentUser.username = newUsername;
+    
+    // Save to localStorage
+    localStorage.setItem('users', JSON.stringify(users));
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    alert('Username updated successfully!');
+    usernameChange.value = '';
+    
+    // Update profile screen if visible
+    const profileUsernameElement = document.getElementById('profile-username');
+    if (profileUsernameElement) {
+        profileUsernameElement.textContent = newUsername;
+    }
+}
+
+function updatePassword() {
+    if (!currentUser) {
+        alert('Please log in to change password.');
+        return;
+    }
+    
+    const newPassword = passwordChange.value;
+    if (!newPassword) {
+        alert('Please enter a new password.');
+        return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userData = users[currentUser.username];
+    
+    if (!userData) {
+        alert('Error: User data not found.');
+        return;
+    }
+    
+    // Update password
+    userData.password = newPassword;
+    
+    // Save to localStorage
+    users[currentUser.username] = userData;
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    alert('Password updated successfully!');
+    passwordChange.value = '';
+}
+
+function saveSettings() {
+    if (!currentUser) {
+        alert('Please log in to save settings.');
+        return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userData = users[currentUser.username];
+    
+    if (!userData) {
+        alert('Error: User data not found.');
+        return;
+    }
+    
+    // Create or update settings object
+    if (!userData.settings) {
+        userData.settings = {};
+    }
+    
+    // Save current settings
+    userData.settings.soundEnabled = soundToggle ? soundToggle.checked : true;
+    userData.settings.musicEnabled = musicToggle ? musicToggle.checked : true;
+    userData.settings.difficulty = difficultySelect ? difficultySelect.value : 'medium';
+    userData.settings.typingSensitivity = typingSensitivity ? typingSensitivity.value : 5;
+    
+    // Save profile picture if exists
+    if (profilePictureImg && profilePictureImg.src && profilePictureImg.style.display !== 'none') {
+        userData.settings.profilePicture = profilePictureImg.src;
+    }
+    
+    // Update localStorage
+    users[currentUser.username] = userData;
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    // Also update currentUser
+    if (!currentUser.settings) {
+        currentUser.settings = {};
+    }
+    currentUser.settings = userData.settings;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    alert('Settings saved successfully!');
+    
+    // Apply settings to game
+    applySettings();
+}
+
+function resetSettings() {
+    if (confirm('Are you sure you want to reset all settings to defaults?')) {
+        loadDefaultSettings();
+        
+        // Remove profile picture
+        removeProfilePicture();
+        
+        // Clear saved settings
+        if (currentUser) {
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            const userData = users[currentUser.username];
+            
+            if (userData) {
+                delete userData.settings;
+                users[currentUser.username] = userData;
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Also update currentUser
+                delete currentUser.settings;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+        }
+        
+        alert('Settings reset to defaults!');
+    }
+}
+
+function applySettings() {
+    if (!currentUser || !currentUser.settings) return;
+    
+    const settings = currentUser.settings;
+    
+    // Apply game settings
+    if (typeof settings.soundEnabled === 'boolean') {
+        // TODO: Apply sound settings in game
+        console.log('Sound enabled:', settings.soundEnabled);
+    }
+    
+    if (typeof settings.musicEnabled === 'boolean') {
+        // TODO: Apply music settings in game
+        console.log('Music enabled:', settings.musicEnabled);
+    }
+    
+    if (settings.difficulty) {
+        difficulty = settings.difficulty;
+        console.log('Difficulty set to:', difficulty);
+    }
+}
+
 // Show profile screen
 function showProfileScreen() {
     console.log('showProfileScreen called, currentUser:', currentUser ? currentUser.username : 'null');
+    
+    // Check if profile screen element is available
+    if (!profileScreen) {
+        console.error('Profile screen element not found!');
+        return;
+    }
     
     // Hide all screens first
     document.querySelectorAll('.screen').forEach(screen => {
@@ -1794,7 +2418,9 @@ function showProfileScreen() {
 
         // Get games played from user data
         const users = JSON.parse(localStorage.getItem('users') || '{}');
+        console.log('All users from localStorage:', users);
         const userData = users[currentUser.username];
+        console.log('userData for', currentUser.username, ':', userData);
         const gamesPlayed = userData ? userData.gamesPlayed || 0 : 0;
         document.getElementById('profile-games-played').textContent = gamesPlayed;
 
@@ -1810,6 +2436,7 @@ function showProfileScreen() {
 
 // Display score history in profile screen
 function displayScoreHistory(userData) {
+    console.log('displayScoreHistory called with userData:', userData);
     const scoreHistoryList = document.getElementById('score-history-list');
     if (!scoreHistoryList) {
         console.error('Score history list element not found');
@@ -1820,10 +2447,25 @@ function displayScoreHistory(userData) {
     scoreHistoryList.innerHTML = '';
     
     // Check if there's score history
-    if (!userData || !userData.scoreHistory || userData.scoreHistory.length === 0) {
+    if (!userData) {
+        console.log('No userData provided');
+        scoreHistoryList.innerHTML = '<p class="no-scores">No user data available</p>';
+        return;
+    }
+    
+    if (!userData.scoreHistory) {
+        console.log('No scoreHistory property in userData');
         scoreHistoryList.innerHTML = '<p class="no-scores">No scores recorded yet</p>';
         return;
     }
+    
+    if (userData.scoreHistory.length === 0) {
+        console.log('scoreHistory array is empty');
+        scoreHistoryList.innerHTML = '<p class="no-scores">No scores recorded yet</p>';
+        return;
+    }
+    
+    console.log('Found score history with', userData.scoreHistory.length, 'entries:', userData.scoreHistory);
     
     // Create a list of scores
     userData.scoreHistory.forEach((entry, index) => {
@@ -2205,12 +2847,18 @@ function togglePause() {
     if (isGamePaused) {
         console.log('Pausing game, clearing intervals');
         // Pause the game
+        console.log('Pause: clearing gameInterval:', gameInterval);
         clearInterval(gameInterval);
+        gameInterval = null;
         if (spawnInterval) {
+            console.log('Pause: clearing spawnInterval:', spawnInterval);
             clearInterval(spawnInterval);
+            spawnInterval = null;
         }
         if (powerupSpawnInterval) {
+            console.log('Clearing powerupSpawnInterval:', powerupSpawnInterval);
             clearInterval(powerupSpawnInterval);
+            powerupSpawnInterval = null;
         }
 
         // Track when the game was paused
@@ -2240,17 +2888,19 @@ function togglePause() {
         }
 
         // Resume the game
+        console.log('Resume: clearing gameInterval:', gameInterval);
         clearInterval(gameInterval);
         gameInterval = setInterval(updateGame, 1000 / 60); // ~60fps
         console.log('New gameInterval created:', gameInterval);
         
         // Ensure word input is focused
         if (wordInput) {
-            if (wordInput) wordInput.focus();
+            wordInput.focus();
         }
 
         // Restart asteroid spawning if needed
         if (spawnInterval) {
+            console.log('Resume: clearing spawnInterval:', spawnInterval);
             clearInterval(spawnInterval);
         }
         spawnInterval = setInterval(spawnAsteroid, Math.max(500, 2000 - (level * 100))); // Minimum 500ms interval
@@ -2258,6 +2908,7 @@ function togglePause() {
         // Restart powerup spawning if needed (only if level >= 3)
         if (level >= 3) {
             if (powerupSpawnInterval) {
+                console.log('Resume: clearing powerupSpawnInterval:', powerupSpawnInterval);
                 clearInterval(powerupSpawnInterval);
             }
             powerupSpawnInterval = setInterval(spawnPowerup, 15000); // Spawn powerup every 15 seconds

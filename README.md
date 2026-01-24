@@ -73,3 +73,47 @@ The game now includes a dedicated updates section accessible from the main menu:
 - See your current version and check for updates manually
 - Click "Update now" or "Update later" to choose when to apply updates
 - Automatic update notifications appear when a new version is available
+
+## Version 3.0 - Settings & Profile Management
+
+Version 3.0 introduces comprehensive settings and profile picture management:
+
+### New Features:
+- **Settings Screen**: Accessible from profile screen with customizable options
+- **Profile Picture Management**: Upload, preview, and remove profile pictures
+- **Game Settings**: Control sound effects, background music, default difficulty, and typing sensitivity
+- **Account Settings**: Change username and password directly from settings
+- **Settings Persistence**: All settings are saved and automatically applied
+
+### Settings Categories:
+1. **Profile Picture**
+   - Upload JPG/PNG images (max 2MB)
+   - Real-time preview of uploaded images
+   - Remove existing profile pictures
+
+2. **Game Settings**
+   - Toggle sound effects on/off
+   - Toggle background music on/off
+   - Select default difficulty (Easy, Medium, Hard)
+   - Adjust typing sensitivity slider (1-10)
+
+3. **Account Settings**
+   - Change username (if available)
+   - Update password
+
+4. **Settings Management**
+   - Save all settings with one click
+   - Reset to default settings
+   - Automatic loading of saved settings on login
+
+### How to Access:
+1. Log in to your account
+2. Click "VIEW PROFILE" from main menu or game over screen
+3. Click "Settings" button in profile screen
+4. Customize your settings and click "Save Settings"
+
+### Technical Improvements:
+- Enhanced version checking system (now supports version 3.0)
+- Improved update notification system
+- Better error handling for file uploads
+- Persistent storage for user preferences
