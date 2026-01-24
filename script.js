@@ -764,7 +764,7 @@ function showUpdateNotification() {
         updateNotification.innerHTML = `
             <div class="update-content">
                 <h3>🎉 New Version Available!</h3>
-                <p>Version 2.0 is now available with exciting new features and improvements!</p>
+                <p>Version 2.0 is now available with bug fixes and performance improvements!</p>
                 <div class="update-buttons">
                     <button id="update-now-btn">Update Now</button>
                     <button id="update-later-btn">Update Later</button>
@@ -870,7 +870,7 @@ function updateToVersion2() {
             }
 
             // Show success message
-            alert('Successfully updated to Version 2.0! Enjoy the new features!');
+            alert('Successfully updated to Version 2.0! Enjoy the improved performance!');
 
             // Reload the page to apply changes
             location.reload();
