@@ -198,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM elements assigned successfully');
 
     // Initialize music elements
+    inGameMusicToggle = document.getElementById('music-toggle');
     const volumeSlider = document.getElementById('volume-slider');
     const pauseButton = document.getElementById('pause-button');
 
@@ -470,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Music controls
-    musicToggle.addEventListener('click', toggleMusic);
+    inGameMusicToggle.addEventListener('click', toggleMusic);
     volumeSlider.addEventListener('input', updateVolume);
 
     // Game pause/resume controls
