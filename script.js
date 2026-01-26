@@ -29,6 +29,7 @@ let powerupSpawnInterval;
 
 // Versioning
 const LATEST_VERSION = '3.0';
+const GUEST_SETTINGS_KEY = 'guestSettings';
 
 // DOM elements
 let startScreen;
@@ -82,6 +83,7 @@ let resetSettingsBtn;
 
 // Game UI elements
 let inGameMusicToggle;
+let startDifficultySelect;
 
 // Audio elements
 let backgroundMusic;
@@ -91,7 +93,25 @@ const musicTracks = [
     'assets/Twelve_Days_of_Christmas_Full_Instrumental.mp3'
 ];
 let isMusicPlaying = false;
+let musicEnabled = true;
 let isGamePaused = false;
+
+// Sound effects system
+let audioContext;
+let gainNode;
+let soundEnabled = true;
+
+// Sound effect parameters
+const soundEffects = {
+    typing: { frequency: 800, duration: 0.1, type: 'sine' },
+    asteroidHit: { frequency: 300, duration: 0.3, type: 'square' },
+    bulletFire: { frequency: 600, duration: 0.05, type: 'sawtooth' },
+    powerupCollect: { frequency: 1000, duration: 0.2, type: 'triangle' },
+    lifeLost: { frequency: 200, duration: 0.5, type: 'sawtooth' },
+    error: { frequency: 400, duration: 0.2, type: 'square' },
+    levelUp: { frequency: 1200, duration: 0.3, type: 'sine' },
+    gameOver: { frequency: 150, duration: 1.0, type: 'sawtooth' }
+};
 
 // User authentication and data
 let currentUser = null;
@@ -136,9 +156,33 @@ document.addEventListener('DOMContentLoaded', () => {
     profilePictureInput = document.getElementById('profile-picture-input');
     profilePictureImg = document.getElementById('profile-picture-img');
     profilePicturePlaceholder = document.getElementById('profile-picture-placeholder');
+    
+    // Set up profile picture error handling
+    if (profilePictureImg) {
+        profilePictureImg.onerror = function() {
+            console.error('Failed to load profile picture');
+            profilePictureImg.style.display = 'none';
+            if (profilePicturePlaceholder) {
+                profilePicturePlaceholder.style.display = 'block';
+            }
+            // Clear corrupted image data from settings
+            if (currentUser && currentUser.settings) {
+                delete currentUser.settings.profilePicture;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                // Also update users object
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                const userData = users[currentUser.username];
+                if (userData && userData.settings) {
+                    delete userData.settings.profilePicture;
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+            }
+        };
+    }
     soundToggle = document.getElementById('sound-toggle');
     musicToggle = document.getElementById('settings-music-toggle');
     difficultySelect = document.getElementById('difficulty-select');
+    startDifficultySelect = document.getElementById('difficulty');
     typingSensitivity = document.getElementById('typing-sensitivity');
     sensitivityValue = document.getElementById('sensitivity-value');
     usernameChange = document.getElementById('username-change');
@@ -473,6 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Music controls
     inGameMusicToggle.addEventListener('click', toggleMusic);
     volumeSlider.addEventListener('input', updateVolume);
+    // Set initial music button appearance
+    updateMusicButtonAppearance();
 
     // Game pause/resume controls
     pauseButton.addEventListener('click', function() {
@@ -558,6 +604,24 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error('View Profile Start button not found!');
     }
+    
+    // Settings button on start screen
+    const settingsStartButton = document.getElementById('settings-button-start');
+    if (settingsStartButton) {
+        settingsStartButton.addEventListener('click', () => {
+            console.log('Settings button clicked from start screen');
+            // Store the previous game state to return to the start screen
+            window.previousGameState = 'start';
+            
+            // Navigate to settings screen (works for both logged in and guest users)
+            console.log('Showing settings screen');
+            startScreen.classList.remove('active');
+            showSettingsScreen();
+        });
+    } else {
+        console.error('Settings Start button not found!');
+    }
+    
     backToGameButton.addEventListener('click', () => {
         profileScreen.classList.remove('active');
         startScreen.classList.add('active');
@@ -810,9 +874,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Initialize music
-    initMusic();
-
     // Initialize global state variables to prevent conflicts
     window.previousGameState = null;
     window.wasGamePausedWhenGoingToShop = false;
@@ -831,6 +892,9 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUser = JSON.parse(savedUser);
         showStartScreen();
         // Apply user settings for auto-logged in user
+        applySettings();
+    } else {
+        // Apply guest settings if any
         applySettings();
     }
 
@@ -1190,8 +1254,21 @@ function showLoginForm(e) {
     document.getElementById('login-form').classList.remove('hidden');
 }
 
-// Handle user signup
+// Handle user signup with device restriction logic with device restriction logic
 function handleSignup() {
+    // Get or generate device ID
+    let currentDeviceID = localStorage.getItem('deviceID');
+    if (!currentDeviceID) {
+        currentDeviceID = generateDeviceID();
+        localStorage.setItem('deviceID', currentDeviceID);
+    }
+
+    // Rest of the signup logic follows
+
+// Show the message immediately after signup
+alert('THIS ACCOUNT CAN ONLY BE LOGGED IN IN THIS DEVICE');
+// Store device ID
+localStorage.setItem('deviceID', currentDeviceID);
     const username = document.getElementById('signup-username').value.trim();
     const password = document.getElementById('signup-password').value;
     const confirmPasswordVal = document.getElementById('confirm-password').value;
@@ -1265,7 +1342,7 @@ function handleSignup() {
     applySettings();
 }
 
-// Handle user login
+// Handle user login with device restriction check with device restriction check with device restriction check with device restriction check with device restriction check
 function handleLogin() {
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
@@ -1587,12 +1664,13 @@ function startGame() {
     pauseOverlay.classList.remove('active');
 
     // Start background music if it's enabled
-    if (isMusicPlaying) {
+    if (musicEnabled) {
         if (!backgroundMusic) {
             initMusic();
         }
         backgroundMusic.currentTime = 0; // Reset to beginning
         backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+        isMusicPlaying = true;
     }
 
     // Update powerup counts display
@@ -1619,6 +1697,7 @@ function handleInput(e) {
         if (typedWord) {
             // Add the typed word to the bullet display
             addBulletToDisplay(typedWord);
+            playSound('bulletFire');
 
             const typedWordLower = typedWord.toLowerCase();
             totalTyped += typedWordLower.length;
@@ -1630,6 +1709,7 @@ function handleInput(e) {
                 if (asteroid.word.toLowerCase() === typedWordLower) {
                     // Correctly typed word - destroy asteroid
                     destroyAsteroid(i);
+                    playSound('asteroidHit');
                     correctTyped += typedWordLower.length;
                     hit = true;
                     break;
@@ -1660,6 +1740,7 @@ function handleInput(e) {
 
                 // Small score penalty for incorrect typing
                 score = Math.max(0, score - 2);
+                playSound('error');
 
                 // Apply life penalty based on difficulty only
                 let shouldLoseLife = false;
@@ -1696,6 +1777,7 @@ function handleInput(e) {
 
                 if (shouldLoseLife) {
                     lives = Math.max(0, lives - 1);
+                    playSound('lifeLost');
                     updateLivesDisplay();
 
                     // Check if game over due to no lives remaining
@@ -1876,6 +1958,7 @@ function updateGame() {
                 } else {
                     // Lose a life (with safety check to prevent negative lives)
                     lives = Math.max(0, lives - 1);
+                    playSound('lifeLost');
                     updateLivesDisplay();
 
                     // Remove the asteroid that reached the bottom
@@ -1934,6 +2017,7 @@ function updateGame() {
                 // Add the powerup to the user's inventory
                 const powerupType = powerup.type;
                 currentUser[powerupType + 'Count'] = (currentUser[powerupType + 'Count'] || 0) + 1;
+                playSound('powerupCollect');
 
                 // Remove the powerup from the game
                 if (powerup.element.parentNode) {
@@ -1958,6 +2042,7 @@ function updateGame() {
     const newLevel = Math.floor(score / 500) + 1;
     if (newLevel > level) {
         level = newLevel;
+        playSound('levelUp');
 
         // Adjust spawn rate based on level
         if (spawnInterval) {
@@ -2015,6 +2100,7 @@ function updateLivesDisplay() {
 function endGame() {
     gameState = 'gameOver';
     isGamePaused = false; // Ensure pause state is reset
+    playSound('gameOver');
     clearInterval(gameInterval);
     if (spawnInterval) {
         clearInterval(spawnInterval);
@@ -2167,8 +2253,28 @@ function hideSettingsScreen() {
 
 function loadSettings() {
     if (!currentUser) {
-        console.log('No user logged in, loading default settings');
-        loadDefaultSettings();
+        console.log('No user logged in, loading guest settings');
+        // Try to load guest settings from localStorage
+        const guestSettings = JSON.parse(localStorage.getItem(GUEST_SETTINGS_KEY) || '{}');
+        
+        if (Object.keys(guestSettings).length > 0) {
+            // Apply guest settings to UI
+            if (soundToggle) soundToggle.checked = guestSettings.soundEnabled !== false;
+            if (musicToggle) musicToggle.checked = guestSettings.musicEnabled !== false;
+            if (difficultySelect) difficultySelect.value = guestSettings.difficulty || 'medium';
+            if (typingSensitivity && guestSettings.typingSensitivity) {
+                typingSensitivity.value = guestSettings.typingSensitivity;
+                if (sensitivityValue) sensitivityValue.textContent = guestSettings.typingSensitivity;
+            }
+            // Profile picture not available for guests
+            if (profilePictureImg) profilePictureImg.style.display = 'none';
+            if (profilePicturePlaceholder) profilePicturePlaceholder.style.display = 'block';
+        } else {
+            loadDefaultSettings();
+        }
+        // Hide account settings section for guest users
+        const accountSection = document.querySelector('.settings-section:nth-child(3)');
+        if (accountSection) accountSection.style.display = 'none';
         return;
     }
 
@@ -2200,6 +2306,9 @@ function loadSettings() {
     } else {
         loadDefaultSettings();
     }
+    // Show account settings section for logged in users
+    const accountSection = document.querySelector('.settings-section:nth-child(3)');
+    if (accountSection) accountSection.style.display = '';
 }
 
 function loadDefaultSettings() {
@@ -2243,14 +2352,32 @@ function handleProfilePictureUpload(event) {
         const imageDataUrl = e.target.result;
         
         // Display the image
-        profilePictureImg.src = imageDataUrl;
-        profilePictureImg.style.display = 'block';
-        profilePicturePlaceholder.style.display = 'none';
+        profilePictureImg.onload = function() {
+            // Image loaded successfully
+            profilePictureImg.style.display = 'block';
+            profilePicturePlaceholder.style.display = 'none';
+            
+            // Save to settings
+            if (currentUser) {
+                saveProfilePictureToSettings(imageDataUrl);
+            }
+        };
         
-        // Save to settings
-        if (currentUser) {
-            saveProfilePictureToSettings(imageDataUrl);
-        }
+        profilePictureImg.onerror = function() {
+            // Image failed to load
+            alert('Failed to load image. Please try a different image file.');
+            profilePictureImg.style.display = 'none';
+            profilePicturePlaceholder.style.display = 'block';
+            // Clear the file input
+            profilePictureInput.value = '';
+        };
+        
+        profilePictureImg.src = imageDataUrl;
+    };
+    
+    reader.onerror = function() {
+        alert('Error reading file. Please try a different image.');
+        profilePictureInput.value = '';
     };
     
     reader.readAsDataURL(file);
@@ -2281,6 +2408,9 @@ function saveProfilePictureToSettings(imageDataUrl) {
 }
 
 function removeProfilePicture() {
+    if (!confirm('Are you sure you want to remove your profile picture?')) {
+        return;
+    }
     // Reset profile picture display
     profilePictureImg.src = '';
     profilePictureImg.style.display = 'none';
@@ -2358,6 +2488,9 @@ function updateUsername() {
     if (profileUsernameElement) {
         profileUsernameElement.textContent = newUsername;
     }
+    
+    // Update start screen username
+    updateStartScreenUserInfo();
 }
 
 function updatePassword() {
@@ -2393,48 +2526,55 @@ function updatePassword() {
 
 function saveSettings() {
     if (!currentUser) {
-        alert('Please log in to save settings.');
-        return;
+        // Guest user: save settings to guestSettings in localStorage
+        const guestSettings = {
+            soundEnabled: soundToggle ? soundToggle.checked : true,
+            musicEnabled: musicToggle ? musicToggle.checked : true,
+            difficulty: difficultySelect ? difficultySelect.value : 'medium',
+            typingSensitivity: typingSensitivity ? typingSensitivity.value : 5
+        };
+        localStorage.setItem(GUEST_SETTINGS_KEY, JSON.stringify(guestSettings));
+        alert('Settings applied for this session. Log in to save permanently.');
+    } else {
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        const userData = users[currentUser.username];
+        
+        if (!userData) {
+            alert('Error: User data not found.');
+            return;
+        }
+        
+        // Create or update settings object
+        if (!userData.settings) {
+            userData.settings = {};
+        }
+        
+        // Save current settings
+        userData.settings.soundEnabled = soundToggle ? soundToggle.checked : true;
+        userData.settings.musicEnabled = musicToggle ? musicToggle.checked : true;
+        userData.settings.difficulty = difficultySelect ? difficultySelect.value : 'medium';
+        userData.settings.typingSensitivity = typingSensitivity ? typingSensitivity.value : 5;
+        
+        // Save profile picture if exists
+        if (profilePictureImg && profilePictureImg.src && profilePictureImg.style.display !== 'none') {
+            userData.settings.profilePicture = profilePictureImg.src;
+        }
+        
+        // Update localStorage
+        users[currentUser.username] = userData;
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        // Also update currentUser
+        if (!currentUser.settings) {
+            currentUser.settings = {};
+        }
+        currentUser.settings = userData.settings;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        alert('Settings saved successfully!');
     }
     
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    const userData = users[currentUser.username];
-    
-    if (!userData) {
-        alert('Error: User data not found.');
-        return;
-    }
-    
-    // Create or update settings object
-    if (!userData.settings) {
-        userData.settings = {};
-    }
-    
-    // Save current settings
-    userData.settings.soundEnabled = soundToggle ? soundToggle.checked : true;
-    userData.settings.musicEnabled = musicToggle ? musicToggle.checked : true;
-    userData.settings.difficulty = difficultySelect ? difficultySelect.value : 'medium';
-    userData.settings.typingSensitivity = typingSensitivity ? typingSensitivity.value : 5;
-    
-    // Save profile picture if exists
-    if (profilePictureImg && profilePictureImg.src && profilePictureImg.style.display !== 'none') {
-        userData.settings.profilePicture = profilePictureImg.src;
-    }
-    
-    // Update localStorage
-    users[currentUser.username] = userData;
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    // Also update currentUser
-    if (!currentUser.settings) {
-        currentUser.settings = {};
-    }
-    currentUser.settings = userData.settings;
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    
-    alert('Settings saved successfully!');
-    
-    // Apply settings to game
+    // Apply settings to game (works for both guest and logged in users)
     applySettings();
 }
 
@@ -2459,48 +2599,69 @@ function resetSettings() {
                 delete currentUser.settings;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
             }
+        } else {
+            // Clear guest settings
+            localStorage.removeItem(GUEST_SETTINGS_KEY);
         }
         
         alert('Settings reset to defaults!');
+        
+        // Apply default settings to game
+        applySettings();
     }
 }
 
 function applySettings() {
-    if (!currentUser || !currentUser.settings) return;
-    
-    const settings = currentUser.settings;
+    let settings = null;
+    if (currentUser && currentUser.settings) {
+        settings = currentUser.settings;
+    } else {
+        // Load guest settings
+        const guestSettings = JSON.parse(localStorage.getItem(GUEST_SETTINGS_KEY) || '{}');
+        if (Object.keys(guestSettings).length === 0) return;
+        settings = guestSettings;
+    }
     
     // Apply game settings
     if (typeof settings.soundEnabled === 'boolean') {
-        // TODO: Apply sound settings in game when sound effects are implemented
+        soundEnabled = settings.soundEnabled;
+        toggleSoundEffects(settings.soundEnabled);
         console.log('Sound enabled:', settings.soundEnabled);
     }
     
     if (typeof settings.musicEnabled === 'boolean') {
-        // Apply music settings immediately
+        // Apply music settings
         console.log('Applying music settings:', settings.musicEnabled);
-        if (settings.musicEnabled) {
-            // Music should be enabled
-            if (!isMusicPlaying) {
-                // If music is not playing, start it
-                if (!backgroundMusic) {
-                    initMusic();
-                }
-                backgroundMusic.play().catch(e => console.log("Audio play error:", e));
-                isMusicPlaying = true;
-            }
-        } else {
-            // Music should be disabled
-            if (isMusicPlaying && backgroundMusic) {
-                backgroundMusic.pause();
-                isMusicPlaying = false;
-            }
+        musicEnabled = settings.musicEnabled;
+        
+        if (!musicEnabled && isMusicPlaying && backgroundMusic) {
+            // Music preference is disabled but music is currently playing
+            backgroundMusic.pause();
+            isMusicPlaying = false;
+        }
+        
+        // If music is enabled, ensure backgroundMusic is initialized if needed
+        if (musicEnabled && !backgroundMusic) {
+            initMusic();
         }
     }
+    updateMusicButtonAppearance();
     
     if (settings.difficulty) {
         difficulty = settings.difficulty;
         console.log('Difficulty set to:', difficulty);
+        // Update start screen difficulty dropdown
+        if (startDifficultySelect) {
+            startDifficultySelect.value = difficulty;
+        }
+    }
+    
+    // Apply typing sensitivity if present
+    if (settings.typingSensitivity) {
+        // typingSensitivity variable is used elsewhere; ensure it's updated
+        // This is a global variable used by the game logic
+        // We'll store it in a global variable for consistency
+        window.typingSensitivityValue = settings.typingSensitivity;
     }
 }
 
@@ -2668,12 +2829,13 @@ function spawnPowerup() {
 
 // Function to activate a power-up
 function activatePowerup(type) {
-    // Reduce the count of this power-up type
-    if (currentUser[type + 'Count'] > 0) {
-        currentUser[type + 'Count']--;
-        updatePowerupCounts();
+        // Reduce the count of this power-up type
+        if (currentUser[type + 'Count'] > 0) {
+            currentUser[type + 'Count']--;
+            updatePowerupCounts();
+            playSound('powerupCollect');
 
-        // Apply the power-up effect
+            // Apply the power-up effect
         const duration = 10000; // 10 seconds duration
         const endTime = Date.now() + duration;
 
@@ -2914,12 +3076,52 @@ function toggleMusic() {
     if (isMusicPlaying) {
         backgroundMusic.pause();
         isMusicPlaying = false;
+        musicEnabled = false;
     } else {
         if (!backgroundMusic) {
             initMusic();
         }
         backgroundMusic.play().catch(e => console.log("Audio play error:", e));
         isMusicPlaying = true;
+        musicEnabled = true;
+    }
+    
+    // Save music preference to user settings
+    if (currentUser) {
+        if (!currentUser.settings) {
+            currentUser.settings = {};
+        }
+        currentUser.settings.musicEnabled = musicEnabled;
+        
+        // Update localStorage
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        // Also update users object
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        if (users[currentUser.username]) {
+            users[currentUser.username].settings = currentUser.settings;
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+    } else {
+        // Save guest music preference
+        const guestSettings = JSON.parse(localStorage.getItem(GUEST_SETTINGS_KEY) || '{}');
+        guestSettings.musicEnabled = musicEnabled;
+        localStorage.setItem(GUEST_SETTINGS_KEY, JSON.stringify(guestSettings));
+    }
+    
+    // Update in-game button appearance
+    updateMusicButtonAppearance();
+}
+
+// Update in-game music button appearance based on musicEnabled setting
+function updateMusicButtonAppearance() {
+    if (!inGameMusicToggle) return;
+    if (musicEnabled) {
+        inGameMusicToggle.textContent = '🎵';
+        inGameMusicToggle.title = 'Music Enabled (click to mute)';
+    } else {
+        inGameMusicToggle.textContent = '🔇';
+        inGameMusicToggle.title = 'Music Disabled (click to enable)';
     }
 }
 
@@ -2929,6 +3131,78 @@ function updateVolume() {
     const volume = volumeSlider.value / 100;
     if (backgroundMusic) {
         backgroundMusic.volume = volume;
+    }
+}
+
+// Initialize sound effects system
+function initSoundEffects() {
+    if (!audioContext) {
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            gainNode = audioContext.createGain();
+            gainNode.connect(audioContext.destination);
+            gainNode.gain.value = soundEnabled ? 0.3 : 0;
+        } catch (error) {
+            console.error('Failed to initialize audio context:', error);
+            // Disable sound effects if audio context fails
+            soundEnabled = false;
+            audioContext = null;
+            gainNode = null;
+        }
+    }
+}
+
+// Play a sound effect
+function playSound(effectName) {
+    if (!soundEnabled) return;
+    
+    // Initialize audio context if needed
+    if (!audioContext) {
+        initSoundEffects();
+    }
+    
+    // If audio context failed to initialize, exit
+    if (!audioContext || !gainNode) return;
+    
+    // Check if audio context is suspended (browsers require user interaction)
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    
+    const effect = soundEffects[effectName];
+    if (!effect) return;
+    
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        
+        oscillator.connect(gain);
+        gain.connect(gainNode);
+        
+        oscillator.frequency.setValueAtTime(effect.frequency, audioContext.currentTime);
+        oscillator.type = effect.type;
+        
+        // Apply envelope
+        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + effect.duration);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + effect.duration);
+    } catch (error) {
+        console.error('Failed to play sound effect:', error);
+    }
+}
+
+// Toggle sound effects on/off
+function toggleSoundEffects(enabled) {
+    soundEnabled = enabled;
+    // Initialize audio context if needed
+    if (!audioContext) {
+        initSoundEffects();
+    }
+    // Update gain node if available
+    if (gainNode) {
+        gainNode.gain.value = enabled ? 0.3 : 0;
     }
 }
 
