@@ -760,6 +760,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add shop button event listener
     const shopButton = document.getElementById('shop-button');
     shopButton.addEventListener('click', () => {
+        // Check version first - require TYPEos 3.0 for store
+        if (!checkVersionForFeatureAccess()) {
+            return; // User needs to update, exit early
+        }
+        
         // If on start screen or game over screen, go to profile first, then shop
         if (gameState === 'start' || gameState === 'gameOver') {
             if (currentUser) {
