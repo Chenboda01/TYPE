@@ -29,6 +29,7 @@ let powerupSpawnInterval;
 
 // Versioning
 const LATEST_VERSION = '3.0';
+const LATEST_VERSION_DISPLAY = 'TYPEos 3.0';
 const GUEST_SETTINGS_KEY = 'guestSettings';
 
 // DOM elements
@@ -948,6 +949,38 @@ function updateVersionDisplay() {
     }
 }
 
+// Helper function to check if user is on the latest version
+// Returns true if on latest version, false otherwise
+// If not on latest version, redirects to updates screen
+function checkVersionForFeatureAccess() {
+    let currentVersion = '1.0';
+    if (currentUser && currentUser.version) {
+        currentVersion = currentUser.version;
+    } else {
+        currentVersion = localStorage.getItem('gameVersion') || '1.0';
+    }
+    
+    if (currentVersion !== LATEST_VERSION) {
+        // Redirect to updates screen
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        if (updatesScreen) {
+            updatesScreen.classList.add('active');
+            gameState = 'updates';
+            updateVersionDisplay();
+            checkForUpdates();
+            
+            // Show a message about the required update
+            setTimeout(() => {
+                alert(`This feature requires ${LATEST_VERSION_DISPLAY}. Please update to continue.`);
+            }, 100);
+        }
+        return false;
+    }
+    return true;
+}
+
 // Function to show update notification
 function showUpdateNotification(currentVersion, latestVersion) {
     // Create update notification element if it doesn't exist
@@ -1007,7 +1040,7 @@ function updateToVersion2() {
         // Update the text to show updating message
         const statusText = loadingIndicator.querySelector('p:first-of-type');
         if (statusText) {
-            statusText.textContent = 'Updating to Version 2.0...';
+            statusText.textContent = 'Updating to TYPEos 2.0...';
         }
     }
 
@@ -1082,7 +1115,7 @@ function updateToVersion2() {
             }
 
             // Show success message
-            alert('Successfully updated to Version 2.0! Enjoy the improved performance!');
+            alert('Successfully updated to TYPEos 2.0! Enjoy the improved performance!');
 
             // Reload the page to apply changes
             location.reload();
@@ -1106,7 +1139,7 @@ function updateToVersion3() {
         // Update the text to show updating message
         const statusText = loadingIndicator.querySelector('p:first-of-type');
         if (statusText) {
-            statusText.textContent = 'Updating to Version 3.0...';
+            statusText.textContent = 'Updating to TYPEos 3.0...';
         }
     }
 
@@ -1221,7 +1254,7 @@ function updateToVersion3() {
             }
 
             // Show success message
-            alert('Successfully updated to Version 3.0! Enjoy new settings and profile picture management!');
+            alert('Successfully updated to TYPEos 3.0! Enjoy new settings and profile picture management!');
 
             // Reload the page to apply changes
             location.reload();
@@ -1233,7 +1266,7 @@ function updateToVersion3() {
 // Function to update to the latest version
 function updateToLatestVersion() {
     console.log('updateToLatestVersion called, LATEST_VERSION:', LATEST_VERSION);
-    alert('Starting update to version ' + LATEST_VERSION + '...');
+    alert('Starting update to ' + LATEST_VERSION_DISPLAY + '...');
     if (LATEST_VERSION === '2.0') {
         updateToVersion2();
     } else if (LATEST_VERSION === '3.0') {
@@ -2221,6 +2254,11 @@ function updateUserInStorage() {
 
 // Settings screen functions
 function showSettingsScreen() {
+    // Check version first - require version 3.0 for settings
+    if (!checkVersionForFeatureAccess()) {
+        return; // User needs to update, exit early
+    }
+    
     // Check if settings screen element is available
     if (!settingsScreen) {
         console.error('Settings screen element not found!');
@@ -2669,6 +2707,11 @@ function applySettings() {
 function showProfileScreen() {
     console.log('showProfileScreen called, currentUser:', currentUser ? currentUser.username : 'null');
     
+    // Check version first - require version 3.0 for profile
+    if (!checkVersionForFeatureAccess()) {
+        return; // User needs to update, exit early
+    }
+    
     // Check if profile screen element is available
     if (!profileScreen) {
         console.error('Profile screen element not found!');
@@ -2881,6 +2924,11 @@ function checkPowerupTimers() {
 
 // Show store screen
 function showStoreScreen() {
+    // Check version first - require version 3.0 for store
+    if (!checkVersionForFeatureAccess()) {
+        return; // User needs to update, exit early
+    }
+    
     // Store the previous game state to return to it later
     window.previousGameState = gameState;
     profileScreen.classList.remove('active');
@@ -3322,6 +3370,11 @@ function togglePause() {
 // Show the host screen with generated join code
 function showHostScreen() {
     console.log("showHostScreen function called"); // Debug log
+    
+    // Check version first - require version 3.0 for multiplayer/hosting
+    if (!checkVersionForFeatureAccess()) {
+        return; // User needs to update, exit early
+    }
 
     // Simple immediate implementation to test functionality
     try {
@@ -3881,6 +3934,11 @@ function deleteReport(reportId) {
 
 // Show the join code input section
 function showJoinCodeInput() {
+    // Check version first - require version 3.0 for multiplayer
+    if (!checkVersionForFeatureAccess()) {
+        return; // User needs to update, exit early
+    }
+    
     const joinCodeSection = document.getElementById('join-code-section');
     const joinCodeValidation = document.getElementById('join-code-validation');
 
