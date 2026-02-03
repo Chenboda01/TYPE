@@ -4006,3 +4006,25 @@ function cleanupJoinCodes() {
         activeJoinCodes = activeJoinCodes.slice(-100); // Keep only the last 100 codes
     }
 }
+
+// Debug function to check version status
+function debugVersionStatus() {
+    console.log('=== VERSION DEBUG ===');
+    console.log('LATEST_VERSION:', LATEST_VERSION);
+    console.log('LATEST_VERSION_DISPLAY:', LATEST_VERSION_DISPLAY);
+    console.log('currentUser:', currentUser);
+    console.log('currentUser.version:', currentUser ? currentUser.version : 'N/A');
+    console.log('localStorage gameVersion:', localStorage.getItem('gameVersion'));
+    console.log('localStorage currentUser:', JSON.parse(localStorage.getItem('currentUser') || '{}').version);
+    console.log('===================');
+    
+    // Check what version would be used
+    let currentVersion = '1.0';
+    if (currentUser && currentUser.version) {
+        currentVersion = currentUser.version;
+    } else {
+        currentVersion = localStorage.getItem('gameVersion') || '1.0';
+    }
+    console.log('Effective currentVersion:', currentVersion);
+    console.log('Would be blocked?', currentVersion !== LATEST_VERSION);
+}
