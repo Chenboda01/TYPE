@@ -840,10 +840,6 @@ document.addEventListener('DOMContentLoaded', () => {
             gameState = 'shop';
         }
 
-        // Ensure the store screen is properly displayed
-        storeScreen.classList.add('active');
-        gameScreen.classList.remove('active');
-
         // Update power-up counts in store
         updatePowerupCounts();
     });
@@ -977,9 +973,7 @@ function checkVersionForFeatureAccess() {
             checkForUpdates();
             
             // Show a message about the required update
-            setTimeout(() => {
-                alert(`This feature requires ${LATEST_VERSION_DISPLAY}. Please update to continue.`);
-            }, 100);
+            alert(`This feature requires ${LATEST_VERSION_DISPLAY}. Please update to continue.`);
         }
         return false;
     }
